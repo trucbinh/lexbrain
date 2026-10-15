@@ -1,0 +1,21 @@
+        <!-- LEXBRAIN:CAPTURE-ACTIVITY (inserted by scripts/apply-android-native.mjs) -->
+        <activity
+            android:name=".CaptureActivity"
+            android:label="Add to LexBrain"
+            android:exported="true"
+            android:theme="@style/Theme.LexBrain.Capture"
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation">
+            <!-- Text-selection menu: "Add to LexBrain" next to Copy / Translate / ChatGPT ... -->
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <!-- Share sheet: share selected text from apps that do not show the selection-menu entry -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>

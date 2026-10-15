@@ -1,0 +1,17 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+
+    "TRANSLATOR_KEY": "<Azure AI Translator key>",
+    "TRANSLATOR_REGION": "<resource region, e.g. centralindia>",
+
+    "COSMOS_CONNECTION": "",
+
+    "LEXBRAIN_DEV_AUTH": "1"
+  },
+  "Host": {
+    "CORS": "*"
+  }
+}

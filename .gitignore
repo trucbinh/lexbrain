@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.vite/
+*.log
+.DS_Store
+
+# Capacitor native projects are generated with `npx cap add`; native sources live in apps/mobile/native
+apps/mobile/android/
+apps/mobile/ios/
+
+# Backend
+backend/**/bin/
+backend/**/obj/
+backend/**/local.settings.json

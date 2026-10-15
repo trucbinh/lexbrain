@@ -1,0 +1,10 @@
+{
+  "name": "LexBrain",
+  "short_name": "LexBrain",
+  "description": "Save words from anywhere, learn them as flip cards.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4f6fa",
+  "theme_color": "#141c33",
+  "icons": [{ "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

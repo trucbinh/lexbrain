@@ -1,0 +1,16 @@
+{
+  "name": "lexbrain",
+  "private": true,
+  "version": "0.1.0",
+  "description": "LexBrain - capture words and sentences from anywhere, translate them, and learn them as flip cards.",
+  "packageManager": "pnpm@12.11.2",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev:mobile": "pnpm --filter @lexbrain/mobile dev",
+    "build:mobile": "pnpm --filter @lexbrain/mobile build",
+    "build:ext": "pnpm --filter @lexbrain/mobile build:ext && pnpm --filter @lexbrain/extension build",
+    "cap:sync": "pnpm --filter @lexbrain/mobile cap:sync",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r --if-present test"
+  }
+}
