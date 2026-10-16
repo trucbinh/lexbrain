@@ -1,7 +1,8 @@
-import { StrictMode } from 'react';
+import { StrictMode, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { CaptureSheet } from './features/capture/CaptureSheet';
+import { PremiumProvider } from './features/premium/PremiumProvider';
 import { SelectionCapture, type PendingText } from './plugins/selectionCapture';
 import './styles.css';
 
@@ -15,21 +16,20 @@ async function boot() {
     // Plugin not available (e.g. an extension page): behave like a normal launch.
   }
 
+  let content: ReactNode;
   if (pending.text.trim()) {
     // Opened from the system text-selection menu or share sheet: show only the popup.
     document.documentElement.classList.add('capture-mode');
-    root.render(
-      <StrictMode>
-        <CaptureSheet text={pending.text} subject={pending.subject} onClose={() => void SelectionCapture.close()} />
-      </StrictMode>,
-    );
+    content = <CaptureSheet text={pending.text} subject={pending.subject} onClose={() => void SelectionCapture.close()} />;
   } else {
-    root.render(
-      <StrictMode>
-        <App />
-      </StrictMode>,
-    );
+    content = <App />;
   }
+
+  root.render(
+    <StrictMode>
+      <PremiumProvider>{content}</PremiumProvider>
+    </StrictMode>,
+  );
 }
 
 void boot();

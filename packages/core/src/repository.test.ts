@@ -2,7 +2,18 @@ import 'fake-indexeddb/auto';
 import Dexie from 'dexie';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { LexBrainDB, setDb } from './db';
-import { addCard, cardsToCsv, deleteCard, getStudyQueue, listCards, markMastered, restoreCard, reviewCard } from './repository';
+import {
+  addCard,
+  addCardWithLimit,
+  CardLimitReachedError,
+  cardsToCsv,
+  deleteCard,
+  getStudyQueue,
+  listCards,
+  markMastered,
+  restoreCard,
+  reviewCard,
+} from './repository';
 
 let n = 0;
 beforeEach(() => {
@@ -25,6 +36,29 @@ describe('repository', () => {
     const b = await addCard({ ...base, sourceText: '  hello ', translatedText: 'salut' });
     expect(b.id).toBe(a.id);
     expect(b.translatedText).toBe('salut');
+    expect(await listCards()).toHaveLength(1);
+  });
+
+  it('enforces the active-card limit atomically while allowing duplicate updates', async () => {
+    const first = await addCardWithLimit({ ...base, sourceText: 'Hello' }, 1);
+    const updated = await addCardWithLimit({ ...base, sourceText: 'hello', translatedText: 'salut' }, 1);
+
+    expect(updated.id).toBe(first.id);
+    await expect(addCardWithLimit({ ...base, sourceText: 'goodbye' }, 1)).rejects.toBeInstanceOf(CardLimitReachedError);
+
+    await deleteCard(first.id);
+    await expect(addCardWithLimit({ ...base, sourceText: 'goodbye' }, 1)).resolves.toMatchObject({
+      sourceText: 'goodbye',
+    });
+  });
+
+  it('does not allow concurrent limited saves to exceed the card limit', async () => {
+    const results = await Promise.allSettled([
+      addCardWithLimit({ ...base, sourceText: 'first' }, 1),
+      addCardWithLimit({ ...base, sourceText: 'second' }, 1),
+    ]);
+
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
     expect(await listCards()).toHaveLength(1);
   });
 

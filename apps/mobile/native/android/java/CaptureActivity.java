@@ -12,6 +12,7 @@ import com.getcapacitor.BridgeActivity;
 public class CaptureActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(BuildInfoPlugin.class);
         registerPlugin(SelectionCapturePlugin.class);
         super.onCreate(savedInstanceState);
         if (getBridge() != null && getBridge().getWebView() != null) {

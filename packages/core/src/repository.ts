@@ -1,4 +1,4 @@
-import { getDb } from './db';
+import { getDb, type CardRow } from './db';
 import { isDue, schedule, type Grade } from './srs';
 import { detectKind, newId, normalizeSelection } from './text';
 import type { Card, CardKind, CardStatus, NewCardInput } from './types';
@@ -13,56 +13,83 @@ export interface CardFilter {
 
 const now = () => new Date().toISOString();
 
+export class CardLimitReachedError extends Error {
+  constructor(readonly limit: number) {
+    super(`The free plan is limited to ${limit} active cards.`);
+    this.name = 'CardLimitReachedError';
+  }
+}
+
 /** Adds a card. If the same text + target language already exists, that card is updated instead. */
 export async function addCard(input: NewCardInput, userId = LOCAL_USER): Promise<Card> {
+  return saveCard(input, userId);
+}
+
+/** Adds or updates a card while enforcing a maximum number of active cards. */
+export async function addCardWithLimit(
+  input: NewCardInput,
+  maxActiveCards: number,
+  userId = LOCAL_USER,
+): Promise<Card> {
+  return saveCard(input, userId, maxActiveCards);
+}
+
+async function saveCard(input: NewCardInput, userId: string, maxActiveCards?: number): Promise<Card> {
   const db = getDb();
   const sourceText = normalizeSelection(input.sourceText);
   if (!sourceText) throw new Error('Nothing to save: the text is empty.');
   const sourceKey = sourceText.toLowerCase();
 
-  const existing = await db.cards
-    .where('[targetLang+sourceKey]')
-    .equals([input.targetLang, sourceKey])
-    .filter((c) => !c.deletedAt)
-    .first();
+  return db.transaction('rw', db.cards, async () => {
+    const existing = await db.cards
+      .where('[targetLang+sourceKey]')
+      .equals([input.targetLang, sourceKey])
+      .filter((c) => !c.deletedAt)
+      .first();
 
-  const stamp = now();
-  if (existing) {
-    const updated: Card = {
-      ...existing,
-      translatedText: input.translatedText,
-      contextSentence: input.contextSentence ?? existing.contextSentence,
-      sourceUrl: input.sourceUrl ?? existing.sourceUrl,
-      sourceTitle: input.sourceTitle ?? existing.sourceTitle,
-      note: input.note ?? existing.note,
+    const stamp = now();
+    if (existing) {
+      const updated: CardRow = {
+        ...existing,
+        translatedText: input.translatedText,
+        contextSentence: input.contextSentence ?? existing.contextSentence,
+        sourceUrl: input.sourceUrl ?? existing.sourceUrl,
+        sourceTitle: input.sourceTitle ?? existing.sourceTitle,
+        note: input.note ?? existing.note,
+        status: 'learning',
+        updatedAt: stamp,
+      };
+      await db.cards.put(updated);
+      return updated;
+    }
+
+    if (maxActiveCards !== undefined) {
+      const activeCount = await db.cards.where('isActive').equals(1).count();
+      if (activeCount >= maxActiveCards) throw new CardLimitReachedError(maxActiveCards);
+    }
+
+    const card: CardRow = {
+      id: newId(),
+      userId,
+      kind: detectKind(sourceText),
+      sourceText,
+      sourceLang: input.sourceLang ?? 'auto',
+      translatedText: input.translatedText.trim(),
+      targetLang: input.targetLang,
+      contextSentence: input.contextSentence,
+      sourceUrl: input.sourceUrl,
+      sourceTitle: input.sourceTitle,
+      note: input.note,
       status: 'learning',
+      createdAt: stamp,
       updatedAt: stamp,
+      ease: 2.5,
+      interval: 0,
+      reps: 0,
     };
-    await db.cards.put(updated);
-    return updated;
-  }
-
-  const card: Card = {
-    id: newId(),
-    userId,
-    kind: detectKind(sourceText),
-    sourceText,
-    sourceLang: input.sourceLang ?? 'auto',
-    translatedText: input.translatedText.trim(),
-    targetLang: input.targetLang,
-    contextSentence: input.contextSentence,
-    sourceUrl: input.sourceUrl,
-    sourceTitle: input.sourceTitle,
-    note: input.note,
-    status: 'learning',
-    createdAt: stamp,
-    updatedAt: stamp,
-    ease: 2.5,
-    interval: 0,
-    reps: 0,
-  };
-  await db.cards.add(card);
-  return card;
+    await db.cards.add(card);
+    return card;
+  });
 }
 
 export async function listCards(filter: CardFilter = {}): Promise<Card[]> {
@@ -95,8 +122,17 @@ export async function countCards(): Promise<{ learning: number; mastered: number
   };
 }
 
-async function patch(id: string, changes: Partial<Card>): Promise<void> {
-  await getDb().cards.update(id, { ...changes, updatedAt: now() });
+export async function countActiveCards(): Promise<number> {
+  return getDb().cards.where('isActive').equals(1).count();
+}
+
+async function patch(id: string, changes: Partial<CardRow>): Promise<void> {
+  const indexes: Partial<CardRow> = {};
+  if (typeof changes.sourceText === 'string') {
+    indexes.sourceKey = normalizeSelection(changes.sourceText).toLowerCase();
+  }
+  if ('deletedAt' in changes) indexes.isActive = changes.deletedAt ? 0 : 1;
+  await getDb().cards.update(id, { ...changes, ...indexes, updatedAt: now() });
 }
 
 export const markMastered = (id: string) => patch(id, { status: 'mastered' });
@@ -105,7 +141,7 @@ export const updateCard = (id: string, changes: Partial<Pick<Card, 'translatedTe
   patch(id, changes);
 
 /** Soft delete (tombstone) so the deletion can sync to other devices. */
-export const deleteCard = (id: string) => patch(id, { deletedAt: now() });
+export const deleteCard = (id: string) => patch(id, { deletedAt: now(), isActive: 0 });
 
 export async function reviewCard(card: Card, grade: Grade): Promise<void> {
   const next = schedule(card, grade);

@@ -16,6 +16,7 @@
     "@capacitor/core": "^8.5.3",
     "@capacitor/ios": "^8.5.3",
     "@lexbrain/core": "workspace:*",
+    "@revenuecat/purchases-capacitor": "13.7.4",
     "dexie": "^4.4.6",
     "dexie-react-hooks": "^4.4.0",
     "react": "^19.3.0",
