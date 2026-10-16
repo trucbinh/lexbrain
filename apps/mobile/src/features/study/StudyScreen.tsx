@@ -14,12 +14,16 @@ import { FlipCard } from './FlipCard';
 
 const SWIPE_DISTANCE = 100;
 
+interface Props {
+  onAddCard: () => void;
+}
+
 interface Undo {
   card: Card;
   label: string;
 }
 
-export function StudyScreen() {
+export function StudyScreen({ onAddCard }: Props) {
   const settings = useSettings();
   const counts = useLiveQuery(() => countCards(), []);
   const [queue, setQueue] = useState<Card[] | null>(null);
@@ -132,17 +136,22 @@ export function StudyScreen() {
         <p className="study-progress" aria-live="polite">
           {current ? `${total - queue.length + 1} of ${total}` : 'Study'}
         </p>
-        <button
-          type="button"
-          className="link-btn"
-          onClick={() =>
-            void saveSettings({
-              studyDirection: settings.studyDirection === 'source-to-target' ? 'target-to-source' : 'source-to-target',
-            })
-          }
-        >
-          {settings.studyDirection === 'source-to-target' ? 'Showing original first' : 'Showing translation first'}
-        </button>
+        <div className="study-bar-actions">
+          <button type="button" className="link-btn" onClick={onAddCard}>
+            Add card
+          </button>
+          <button
+            type="button"
+            className="link-btn"
+            onClick={() =>
+              void saveSettings({
+                studyDirection: settings.studyDirection === 'source-to-target' ? 'target-to-source' : 'source-to-target',
+              })
+            }
+          >
+            {settings.studyDirection === 'source-to-target' ? 'Showing original first' : 'Showing translation first'}
+          </button>
+        </div>
       </div>
 
       {current ? (

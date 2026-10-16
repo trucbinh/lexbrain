@@ -1,6 +1,8 @@
 import { countCards } from '@lexbrain/core';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
+import { CaptureSheet } from './features/capture/CaptureSheet';
+import { ManualEntrySheet } from './features/capture/ManualEntrySheet';
 import { LibraryScreen } from './features/library/LibraryScreen';
 import { SettingsScreen } from './features/settings/SettingsScreen';
 import { StudyScreen } from './features/study/StudyScreen';
@@ -11,6 +13,8 @@ type Tab = 'study' | 'words' | 'settings';
 export function App() {
   const wide = useMediaQuery('(min-width: 900px)');
   const [tab, setTab] = useState<Tab>('study');
+  const [manualEntryOpen, setManualEntryOpen] = useState(false);
+  const [manualText, setManualText] = useState<string | null>(null);
   const counts = useLiveQuery(() => countCards(), []);
   // On tablets the word list is always visible on the left, so "Words" is not a separate tab.
   const active: Tab = wide && tab === 'words' ? 'study' : tab;
@@ -55,10 +59,12 @@ export function App() {
             <aside className="split-list" aria-label="Saved words">
               <LibraryScreen />
             </aside>
-            <section className="split-detail">{active === 'settings' ? <SettingsScreen /> : <StudyScreen />}</section>
+            <section className="split-detail">
+              {active === 'settings' ? <SettingsScreen /> : <StudyScreen onAddCard={() => setManualEntryOpen(true)} />}
+            </section>
           </div>
         ) : active === 'study' ? (
-          <StudyScreen />
+          <StudyScreen onAddCard={() => setManualEntryOpen(true)} />
         ) : active === 'words' ? (
           <LibraryScreen />
         ) : (
@@ -67,6 +73,17 @@ export function App() {
       </main>
 
       {!wide && <div className="tabbar">{nav}</div>}
+
+      {manualEntryOpen && (
+        <ManualEntrySheet
+          onClose={() => setManualEntryOpen(false)}
+          onTranslate={(text) => {
+            setManualEntryOpen(false);
+            setManualText(text);
+          }}
+        />
+      )}
+      {manualText !== null && <CaptureSheet text={manualText} onClose={() => setManualText(null)} />}
     </div>
   );
 }
