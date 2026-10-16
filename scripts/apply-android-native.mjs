@@ -43,11 +43,19 @@ for (const file of readdirSync(join(native, 'java'))) {
   console.log(`  wrote ${appId.replaceAll('.', '/')}/${file}`);
 }
 
-// 4. Theme resource
-const valuesDir = join(androidApp, 'res/values');
-mkdirSync(valuesDir, { recursive: true });
-copyFileSync(join(native, 'res/values/lexbrain_capture_styles.xml'), join(valuesDir, 'lexbrain_capture_styles.xml'));
-console.log('  wrote res/values/lexbrain_capture_styles.xml');
+// 4. Copy native resources, including launcher icon layers.
+function copyResourceTree(source, destination) {
+  mkdirSync(destination, { recursive: true });
+  for (const entry of readdirSync(source, { withFileTypes: true })) {
+    const sourcePath = join(source, entry.name);
+    const destinationPath = join(destination, entry.name);
+    if (entry.isDirectory()) copyResourceTree(sourcePath, destinationPath);
+    else copyFileSync(sourcePath, destinationPath);
+  }
+}
+
+copyResourceTree(join(native, 'res'), join(androidApp, 'res'));
+console.log('  copied native Android resources');
 
 // 5. Manifest: insert the capture activity once.
 const manifestPath = join(androidApp, 'AndroidManifest.xml');

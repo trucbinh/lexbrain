@@ -39,6 +39,7 @@ describe('syncNow', () => {
 
     expect(result).toMatchObject({ pulled: 1, pushed: 1 });
     expect(pushed.map((c) => c.id)).toEqual([local.id]);
+    expect(pushed[0]).not.toHaveProperty('sourceKey');
     expect(await getDb().cards.get('r1')).toBeTruthy();
     const s = await getSettings();
     expect(s.lastSyncAt).toBe('2026-06-01T00:00:00.000Z');

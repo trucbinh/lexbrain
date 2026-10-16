@@ -18,11 +18,12 @@ export async function addCard(input: NewCardInput, userId = LOCAL_USER): Promise
   const db = getDb();
   const sourceText = normalizeSelection(input.sourceText);
   if (!sourceText) throw new Error('Nothing to save: the text is empty.');
+  const sourceKey = sourceText.toLowerCase();
 
   const existing = await db.cards
-    .where('targetLang')
-    .equals(input.targetLang)
-    .filter((c) => !c.deletedAt && c.sourceText.toLowerCase() === sourceText.toLowerCase())
+    .where('[targetLang+sourceKey]')
+    .equals([input.targetLang, sourceKey])
+    .filter((c) => !c.deletedAt)
     .first();
 
   const stamp = now();

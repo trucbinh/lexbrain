@@ -1,4 +1,5 @@
 import 'fake-indexeddb/auto';
+import Dexie from 'dexie';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { LexBrainDB, setDb } from './db';
 import { addCard, cardsToCsv, deleteCard, getStudyQueue, listCards, markMastered, restoreCard, reviewCard } from './repository';
@@ -24,6 +25,38 @@ describe('repository', () => {
     const b = await addCard({ ...base, sourceText: '  hello ', translatedText: 'salut' });
     expect(b.id).toBe(a.id);
     expect(b.translatedText).toBe('salut');
+    expect(await listCards()).toHaveLength(1);
+  });
+
+  it('indexes existing cards during the database upgrade', async () => {
+    const name = `legacy-${n++}`;
+    const legacy = new Dexie(name);
+    legacy.version(1).stores({
+      cards: 'id, status, kind, targetLang, sourceLang, updatedAt, dueAt, deletedAt',
+      settings: 'key',
+      translationCache: 'key, createdAt',
+    });
+    await legacy.table('cards').add({
+      id: 'legacy-card',
+      userId: 'local',
+      kind: 'word',
+      sourceText: 'Hello',
+      sourceLang: 'en',
+      translatedText: 'bonjour',
+      targetLang: 'fr',
+      status: 'learning',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      ease: 2.5,
+      interval: 0,
+      reps: 0,
+    });
+    legacy.close();
+    setDb(new LexBrainDB(name));
+
+    const updated = await addCard({ ...base, sourceText: 'hello' });
+
+    expect(updated.id).toBe('legacy-card');
     expect(await listCards()).toHaveLength(1);
   });
 

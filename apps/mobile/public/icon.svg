@@ -1,5 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#141c33"/>
-  <rect x="96" y="318" width="320" height="64" rx="10" fill="#ffdd4a" transform="rotate(-3 256 350)"/>
-  <text x="256" y="350" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="300" font-weight="700" fill="#ffffff">L</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">
+  <rect width="108" height="108" fill="#2b4bff"/>
+  <path d="M54 35c-8-7-20-9-32-6v46c12-3 24-1 32 6 8-7 20-9 32-6V29c-12-3-24-1-32 6Z" fill="#f4f6fa"/>
+  <path d="M54 36v44" fill="none" stroke="#2b4bff" stroke-linecap="round" stroke-width="3"/>
+  <path d="M31 45c6-2 12 0 18 3v6c-6-3-12-5-18-3Z" fill="#ffdd4a"/>
 </svg>

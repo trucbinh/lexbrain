@@ -72,14 +72,16 @@ export function CaptureSheet({ text, subject, onClose }: Props) {
     if (!target) return;
     setPhase('saving');
     try {
-      await addCard({
-        sourceText: original,
-        translatedText: translated,
-        sourceLang: detected ?? 'auto',
-        targetLang: target,
-        sourceTitle: subject,
-      });
-      await saveSettings({ targetLang: target });
+      await Promise.all([
+        addCard({
+          sourceText: original,
+          translatedText: translated,
+          sourceLang: detected ?? 'auto',
+          targetLang: target,
+          sourceTitle: subject,
+        }),
+        saveSettings({ targetLang: target }),
+      ]);
       setPhase('saved');
       window.setTimeout(onClose, 700);
     } catch (e) {

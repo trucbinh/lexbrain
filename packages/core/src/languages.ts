@@ -31,7 +31,7 @@ export const LANGUAGES: Language[] = [
   { code: 'uk', name: 'Ukrainian', native: 'Українська' },
   { code: 'tr', name: 'Turkish', native: 'Türkçe' },
   { code: 'ar', name: 'Arabic', native: 'العربية' },
-];
+].sort((first, second) => first.name.localeCompare(second.name, 'en'));
 
 export function languageName(code: string): string {
   if (code === 'auto') return 'Auto-detect';

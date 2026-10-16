@@ -50,7 +50,7 @@ export async function syncNow(getHeaders: () => Promise<Record<string, string>> 
   // Skip cards we just received: pushing them back would only echo the server's own data.
   const changed = (await db.cards.where('updatedAt').above(pushSince).toArray()).filter((c) => !applied.has(c.id));
   for (let i = 0; i < changed.length; i += 200) {
-    const batch = changed.slice(i, i + 200);
+    const batch = changed.slice(i, i + 200).map(({ sourceKey: _sourceKey, ...card }) => card);
     const res = await fetch(`${base}/api/sync/push`, { method: 'POST', headers, body: JSON.stringify({ cards: batch }) });
     if (!res.ok) throw new Error(`Sync push failed (${res.status}).`);
   }

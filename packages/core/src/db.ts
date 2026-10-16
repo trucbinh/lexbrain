@@ -1,5 +1,10 @@
 import Dexie, { type Table } from 'dexie';
+import { normalizeSelection } from './text';
 import type { Card } from './types';
+
+interface IndexedCard extends Card {
+  sourceKey?: string;
+}
 
 export interface SettingRow {
   key: string;
@@ -14,7 +19,7 @@ export interface TranslationCacheRow {
 }
 
 export class LexBrainDB extends Dexie {
-  cards!: Table<Card, string>;
+  cards!: Table<IndexedCard, string>;
   settings!: Table<SettingRow, string>;
   translationCache!: Table<TranslationCacheRow, string>;
 
@@ -24,6 +29,27 @@ export class LexBrainDB extends Dexie {
       cards: 'id, status, kind, targetLang, sourceLang, updatedAt, dueAt, deletedAt',
       settings: 'key',
       translationCache: 'key, createdAt',
+    });
+    this.version(2)
+      .stores({
+        cards: 'id, status, kind, targetLang, sourceLang, updatedAt, dueAt, deletedAt, [targetLang+sourceKey]',
+        settings: 'key',
+        translationCache: 'key, createdAt',
+      })
+      .upgrade(async (transaction) => {
+        await transaction.table('cards').toCollection().modify((card: IndexedCard) => {
+          card.sourceKey = normalizeSelection(card.sourceText).toLowerCase();
+        });
+      });
+
+    this.cards.hook('creating', (_key, card) => {
+      card.sourceKey = normalizeSelection(card.sourceText).toLowerCase();
+    });
+    this.cards.hook('updating', (changes) => {
+      const cardChanges = changes as Partial<IndexedCard>;
+      if (typeof cardChanges.sourceText === 'string') {
+        cardChanges.sourceKey = normalizeSelection(cardChanges.sourceText).toLowerCase();
+      }
     });
   }
 }
