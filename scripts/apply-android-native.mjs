@@ -52,10 +52,17 @@ console.log('  wrote res/values/lexbrain_capture_styles.xml');
 // 5. Manifest: insert the capture activity once.
 const manifestPath = join(androidApp, 'AndroidManifest.xml');
 let manifest = readFileSync(manifestPath, 'utf8');
-if (manifest.includes('LEXBRAIN:CAPTURE-ACTIVITY')) {
-  console.log('  AndroidManifest.xml already patched');
+const activity = readFileSync(join(native, 'manifest-activity.xml'), 'utf8').trimEnd();
+const activityPattern = /[ \t]*<!-- LEXBRAIN:CAPTURE-ACTIVITY[\s\S]*?<\/activity>/;
+if (activityPattern.test(manifest)) {
+  const updated = manifest.replace(activityPattern, activity);
+  if (updated !== manifest) {
+    writeFileSync(manifestPath, updated);
+    console.log('  updated capture activity in AndroidManifest.xml');
+  } else {
+    console.log('  AndroidManifest.xml already patched');
+  }
 } else {
-  const activity = readFileSync(join(native, 'manifest-activity.xml'), 'utf8');
   if (!manifest.includes('</application>')) {
     console.error('Unexpected AndroidManifest.xml: no </application> tag found.');
     process.exit(1);

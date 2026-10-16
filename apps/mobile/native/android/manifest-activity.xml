@@ -4,6 +4,7 @@
             android:label="Add to LexBrain"
             android:exported="true"
             android:theme="@style/Theme.LexBrain.Capture"
+            android:hardwareAccelerated="false"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation">
             <!-- Text-selection menu: "Add to LexBrain" next to Copy / Translate / ChatGPT ... -->

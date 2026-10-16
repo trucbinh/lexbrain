@@ -1,6 +1,5 @@
 package com.lexbrain.app;
 
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;
@@ -18,13 +17,5 @@ public class CaptureActivity extends BridgeActivity {
         if (getBridge() != null && getBridge().getWebView() != null) {
             getBridge().getWebView().setBackgroundColor(Color.TRANSPARENT);
         }
-    }
-
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        // Defensive: if a new selection is delivered to a live popup, restart so the web layer re-reads it.
-        setIntent(intent);
-        recreate();
     }
 }
