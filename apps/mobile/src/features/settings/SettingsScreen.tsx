@@ -101,6 +101,10 @@ export function SettingsScreen() {
 
       <p className="field-help">Cards and cached translations stay in this app. Text you translate is sent to Google Translate.</p>
 
+      <p className="field-help">
+        <a href="https://trucbinh.github.io/lexbrain/privacy-policy.html">Privacy policy</a>
+      </p>
+
       <div className="settings-actions">
         <button
           type="button"
