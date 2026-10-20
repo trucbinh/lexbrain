@@ -16,7 +16,7 @@ final class ShareViewController: SLComposeServiceViewController {
         loadSharedContent(from: providers) { [weak self] text, sourceUrl in
             guard let self, let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                   let defaults = UserDefaults(suiteName: appGroup) else {
-                self?.cancelRequest(withError: NSError(domain: "LexBrainShare", code: 1))
+                self?.extensionContext?.cancelRequest(withError: NSError(domain: "LexBrainShare", code: 1))
                 return
             }
 
