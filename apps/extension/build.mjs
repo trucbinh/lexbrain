@@ -16,4 +16,4 @@ await build({
 
 cpSync('manifest.json', 'dist/manifest.json');
 cpSync('icons', 'dist/icons', { recursive: true });
-console.log('Extension ready in apps/extension/dist - load it via chrome://extensions > Load unpacked.');
+console.log('Chromium extension ready in apps/extension/dist for Chrome and Edge.');

@@ -45,13 +45,18 @@ Try the capture popup in a browser without a phone: <http://localhost:5173/?capt
 
 Translation temporarily uses Google's undocumented, keyless web Translate endpoint. It is not the supported Google Cloud Translation API and may change without notice. Card data and the translation cache stay in the app's local database; text submitted for translation is sent to Google.
 
-### Browser extension
+### Chrome and Edge extension
 
 ```bash
 pnpm build:ext         # builds the study UI into the extension, then bundles the extension
 ```
 
-Open `chrome://extensions`, enable Developer mode, **Load unpacked**, choose `apps/extension/dist`. Select text on any page and click **Add to LexBrain**. The toolbar icon opens the study / library app.
+The same Manifest V3 build supports both browsers:
+
+- **Chrome:** open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, then select `apps/extension/dist`.
+- **Edge:** open `edge://extensions`, enable Developer mode, choose **Load unpacked**, then select `apps/extension/dist`.
+
+Select text on a page and click **Add to LexBrain**; the toolbar icon opens the study / library app. For store submission, zip the contents of `apps/extension/dist` (so `manifest.json` is at the archive root) and submit that same package separately to the Chrome Web Store and Microsoft Edge Add-ons. Store listings and review are separate.
 
 The extension requests translations from Google's Translate web endpoint; its host permission is declared in `apps/extension/manifest.json`.
 

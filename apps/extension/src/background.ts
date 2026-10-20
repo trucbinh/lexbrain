@@ -39,7 +39,7 @@ chrome.action.onClicked.addListener(() => {
   void chrome.tabs.create({ url: chrome.runtime.getURL('app/index.html') });
 });
 
-// Right-click menu: works wherever content scripts cannot run (e.g. Chrome's built-in PDF viewer).
+// Right-click menu: works wherever content scripts cannot run (e.g. built-in PDF viewers).
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
