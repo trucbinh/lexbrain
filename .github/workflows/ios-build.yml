@@ -32,6 +32,12 @@ jobs:
           if [ ! -d ios ]; then npx cap add ios; fi
           npx cap sync ios
 
+      - name: Configure native capture extensions
+        run: |
+          sudo gem install xcodeproj --no-document
+          ruby -c scripts/apply-ios-native.rb
+          ruby scripts/apply-ios-native.rb
+
       - name: Build for iOS Simulator
         working-directory: apps/mobile
         run: |

@@ -199,6 +199,9 @@ importers:
       '@lexbrain/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@lexbrain/ios-capture':
+        specifier: workspace:*
+        version: link:../../packages/ios-capture
       dexie:
         specifier: ^4.4.6
         version: 4.4.6
@@ -246,6 +249,8 @@ importers:
       vitest:
         specifier: ^3.2.0
         version: 3.2.7(@types/node@26.6.5)(lightningcss@1.33.0)
+
+  packages/ios-capture: {}
 
 packages:
 

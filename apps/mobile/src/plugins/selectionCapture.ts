@@ -2,9 +2,10 @@ import { registerPlugin } from '@capacitor/core';
 
 export interface PendingText {
   text: string;
-  /** How the text arrived: Android "process text" menu, Android share sheet, or the web dev fallback. */
-  source: 'process_text' | 'share' | 'web' | null;
+  /** How the text arrived: Android, iOS Share Sheet/Safari, or the web dev fallback. */
+  source: 'process_text' | 'share' | 'safari' | 'web' | null;
   subject?: string;
+  sourceUrl?: string;
 }
 
 export interface SelectionCapturePlugin {
@@ -15,7 +16,7 @@ export interface SelectionCapturePlugin {
 }
 
 /**
- * Native implementation: apps/mobile/native/android (Java).
+ * Native implementations: apps/mobile/native/android (Java) and @lexbrain/ios-capture (Swift).
  * Web fallback: open the dev server with ?capture=some%20text to test the capture sheet in a browser.
  */
 export const SelectionCapture = registerPlugin<SelectionCapturePlugin>('SelectionCapture', {

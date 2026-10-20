@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "LexBrain Safari Capture",
+  "version": "1.1.2",
+  "description": "Send selected text from Safari to LexBrain.",
+  "permissions": ["nativeMessaging"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

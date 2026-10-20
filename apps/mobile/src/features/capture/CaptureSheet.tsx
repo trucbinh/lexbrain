@@ -14,13 +14,14 @@ import { useEffect, useRef, useState } from 'react';
 interface Props {
   text: string;
   subject?: string;
+  sourceUrl?: string;
   onClose: () => void;
 }
 
 type Phase = 'loading' | 'ready' | 'error' | 'saving' | 'saved';
 
 /** The popup shown over the browser / PDF reader after "Add to LexBrain" is chosen. */
-export function CaptureSheet({ text, subject, onClose }: Props) {
+export function CaptureSheet({ text, subject, sourceUrl, onClose }: Props) {
   const original = normalizeSelection(text);
   const kind = detectKind(original);
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -79,6 +80,7 @@ export function CaptureSheet({ text, subject, onClose }: Props) {
         sourceLang: detected ?? 'auto',
         targetLang: target,
         contextSentence: contextSentence.trim() || undefined,
+        sourceUrl,
         sourceTitle: subject,
       };
       await Promise.all([

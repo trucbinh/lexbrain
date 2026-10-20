@@ -76,7 +76,7 @@ pnpm cap:sync
 cd apps/mobile && npx cap open android    # run from Android Studio
 ```
 
-Build the signed Android App Bundle (`.aab`) from Android Studio. For iOS, run `npx cap add ios`, then `pnpm cap:sync` and open the iOS project in Xcode on macOS. Android selection-menu capture is included; iOS share capture is not implemented.
+Build the signed Android App Bundle (`.aab`) from Android Studio. For iOS, run `npx cap add ios`, `npx cap sync ios`, then `ruby scripts/apply-ios-native.rb` and open the iOS project in Xcode on macOS. Android selection-menu capture and iOS Share Sheet/Safari capture are included; see `docs/ios.md` for setup and required App Group signing configuration.
 
 Before publishing, change `appId` in `apps/mobile/capacitor.config.ts` (it cannot change after release) and re-run the steps above on a fresh `android/` folder.
 
