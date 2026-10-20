@@ -2,7 +2,6 @@ import { StrictMode, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { CaptureSheet } from './features/capture/CaptureSheet';
-import { PremiumProvider } from './features/premium/PremiumProvider';
 import { SelectionCapture, type PendingText } from './plugins/selectionCapture';
 import './styles.css';
 
@@ -27,7 +26,7 @@ async function boot() {
 
   root.render(
     <StrictMode>
-      <PremiumProvider>{content}</PremiumProvider>
+      {content}
     </StrictMode>,
   );
 }

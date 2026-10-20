@@ -196,9 +196,6 @@ importers:
       '@lexbrain/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@revenuecat/purchases-capacitor':
-        specifier: 13.7.4
-        version: 13.7.4(@capacitor/core@8.5.3)
       dexie:
         specifier: ^4.4.6
         version: 4.4.6
@@ -471,14 +468,6 @@ packages:
 
   '@oxc-project/types@0.153.0':
     resolution: {integrity: sha512-jSNrRIyvPVLL5E1z/tS5zLAprosGz/FuI1PWwEOz59j3E4TTTzSpqKb/RDGqJhhW0QHYISGXxq582wGx6T11Tw==}
-
-  '@revenuecat/purchases-capacitor@13.7.4':
-    resolution: {integrity: sha512-BIeHJv1YOCycBlYJ+8nAe4vzEYmqiQGxDIfamqQgojzm8XuWMuOt9jq7kK9ClnIfcUEz1YIh1Fy/Xb/03tUhMw==}
-    peerDependencies:
-      '@capacitor/core': '>=8.0.0'
-
-  '@revenuecat/purchases-typescript-internal-esm@19.12.0':
-    resolution: {integrity: sha512-Hsuo4ACBK2CLRS59OiU8YxnO2IFqjgQ+7ZGIO8U4+VHQ3hWSmWWoHGcfTeMfL7jqUPLQoqLiQCZ1H30iQpzijQ==}
 
   '@rolldown/binding-android-arm-eabi@1.2.13':
     resolution: {integrity: sha512-Vu/NICrgdRvUOeaJZIyB2FP63s6fO/4ud5l8dXmxDx9yDyn+mN0y+gsvsVviSli+T361Aqo0h46EuMoobrwawA==}
@@ -1685,13 +1674,6 @@ snapshots:
     optional: true
 
   '@oxc-project/types@0.153.0': {}
-
-  '@revenuecat/purchases-capacitor@13.7.4(@capacitor/core@8.5.3)':
-    dependencies:
-      '@capacitor/core': 8.5.3
-      '@revenuecat/purchases-typescript-internal-esm': 19.12.0
-
-  '@revenuecat/purchases-typescript-internal-esm@19.12.0': {}
 
   '@rolldown/binding-android-arm-eabi@1.2.13':
     optional: true

@@ -13,28 +13,12 @@ export interface CardFilter {
 
 const now = () => new Date().toISOString();
 
-export class CardLimitReachedError extends Error {
-  constructor(readonly limit: number) {
-    super(`The free plan is limited to ${limit} active cards.`);
-    this.name = 'CardLimitReachedError';
-  }
-}
-
 /** Adds a card. If the same text + target language already exists, that card is updated instead. */
 export async function addCard(input: NewCardInput, userId = LOCAL_USER): Promise<Card> {
   return saveCard(input, userId);
 }
 
-/** Adds or updates a card while enforcing a maximum number of active cards. */
-export async function addCardWithLimit(
-  input: NewCardInput,
-  maxActiveCards: number,
-  userId = LOCAL_USER,
-): Promise<Card> {
-  return saveCard(input, userId, maxActiveCards);
-}
-
-async function saveCard(input: NewCardInput, userId: string, maxActiveCards?: number): Promise<Card> {
+async function saveCard(input: NewCardInput, userId: string): Promise<Card> {
   const db = getDb();
   const sourceText = normalizeSelection(input.sourceText);
   if (!sourceText) throw new Error('Nothing to save: the text is empty.');
@@ -61,11 +45,6 @@ async function saveCard(input: NewCardInput, userId: string, maxActiveCards?: nu
       };
       await db.cards.put(updated);
       return updated;
-    }
-
-    if (maxActiveCards !== undefined) {
-      const activeCount = await db.cards.where('isActive').equals(1).count();
-      if (activeCount >= maxActiveCards) throw new CardLimitReachedError(maxActiveCards);
     }
 
     const card: CardRow = {
@@ -120,10 +99,6 @@ export async function countCards(): Promise<{ learning: number; mastered: number
     learning: rows.filter((c) => c.status === 'learning').length,
     mastered: rows.filter((c) => c.status === 'mastered').length,
   };
-}
-
-export async function countActiveCards(): Promise<number> {
-  return getDb().cards.where('isActive').equals(1).count();
 }
 
 async function patch(id: string, changes: Partial<CardRow>): Promise<void> {

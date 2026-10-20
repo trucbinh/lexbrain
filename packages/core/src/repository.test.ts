@@ -4,8 +4,6 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { LexBrainDB, setDb } from './db';
 import {
   addCard,
-  addCardWithLimit,
-  CardLimitReachedError,
   cardsToCsv,
   deleteCard,
   getStudyQueue,
@@ -39,27 +37,12 @@ describe('repository', () => {
     expect(await listCards()).toHaveLength(1);
   });
 
-  it('enforces the active-card limit atomically while allowing duplicate updates', async () => {
-    const first = await addCardWithLimit({ ...base, sourceText: 'Hello' }, 1);
-    const updated = await addCardWithLimit({ ...base, sourceText: 'hello', translatedText: 'salut' }, 1);
+  it('allows more than 20 cards', async () => {
+    for (let index = 0; index < 21; index += 1) {
+      await addCard({ ...base, sourceText: `word ${index}` });
+    }
 
-    expect(updated.id).toBe(first.id);
-    await expect(addCardWithLimit({ ...base, sourceText: 'goodbye' }, 1)).rejects.toBeInstanceOf(CardLimitReachedError);
-
-    await deleteCard(first.id);
-    await expect(addCardWithLimit({ ...base, sourceText: 'goodbye' }, 1)).resolves.toMatchObject({
-      sourceText: 'goodbye',
-    });
-  });
-
-  it('does not allow concurrent limited saves to exceed the card limit', async () => {
-    const results = await Promise.allSettled([
-      addCardWithLimit({ ...base, sourceText: 'first' }, 1),
-      addCardWithLimit({ ...base, sourceText: 'second' }, 1),
-    ]);
-
-    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
-    expect(await listCards()).toHaveLength(1);
+    expect(await listCards()).toHaveLength(21);
   });
 
   it('indexes existing cards during the database upgrade', async () => {

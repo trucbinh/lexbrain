@@ -11,8 +11,6 @@ cd apps/mobile && npx cap add ios && npx cap sync ios && npx cap open ios
 
 Requires a Mac with Xcode and an Apple Developer account.
 
-For the freemium entitlement and purchase setup, see [freemium.md](freemium.md). Add `apps/mobile/native/ios/BuildInfoPlugin.swift` to the app target and register it with the Capacitor bridge so debug builds bypass the free-card limit.
-
 ## Share Extension
 
 1. In Xcode: **File -> New -> Target -> Share Extension** ("Add to LexBrain"). Use Swift.

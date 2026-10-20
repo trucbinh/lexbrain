@@ -80,16 +80,4 @@ if (activityPattern.test(manifest)) {
   console.log('  patched AndroidManifest.xml');
 }
 
-const mainActivityTag = manifest.match(/<activity\b(?=[^>]*android:name="\.MainActivity")[^>]*>/s)?.[0];
-if (mainActivityTag) {
-  const updatedTag = mainActivityTag.includes('android:launchMode=')
-    ? mainActivityTag.replace(/android:launchMode="[^"]+"/, 'android:launchMode="singleTop"')
-    : mainActivityTag.replace(/>$/, ' android:launchMode="singleTop">');
-  if (updatedTag !== mainActivityTag) {
-    manifest = manifest.replace(mainActivityTag, updatedTag);
-    writeFileSync(manifestPath, manifest);
-    console.log('  set MainActivity launch mode to singleTop for store billing');
-  }
-}
-
 console.log('\nDone. Next: pnpm cap:sync, then open android/ in Android Studio and run.');

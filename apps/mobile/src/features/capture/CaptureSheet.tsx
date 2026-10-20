@@ -1,7 +1,5 @@
 import {
   addCard,
-  addCardWithLimit,
-  CardLimitReachedError,
   createTranslator,
   detectKind,
   getSettings,
@@ -12,9 +10,6 @@ import {
   type AppSettings,
 } from '@lexbrain/core';
 import { useEffect, useRef, useState } from 'react';
-import { usePremium } from '../premium/PremiumProvider';
-
-const FREE_CARD_LIMIT = 20;
 
 interface Props {
   text: string;
@@ -36,8 +31,6 @@ export function CaptureSheet({ text, subject, onClose }: Props) {
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
   const edited = useRef(false);
-  const premium = usePremium();
-  const [limitReached, setLimitReached] = useState(false);
 
   useEffect(() => {
     void getSettings().then((s) => {
@@ -87,30 +80,18 @@ export function CaptureSheet({ text, subject, onClose }: Props) {
         sourceTitle: subject,
       };
       await Promise.all([
-        premium.unlimited ? addCard(card) : addCardWithLimit(card, FREE_CARD_LIMIT),
+        addCard(card),
         saveSettings({ targetLang: target }),
       ]);
       setPhase('saved');
       window.setTimeout(onClose, 700);
     } catch (e) {
-      if (e instanceof CardLimitReachedError) setLimitReached(true);
       setError(e instanceof Error ? e.message : 'Could not save. Try again.');
       setPhase('error');
     }
   };
 
-  const unlockPro = async () => {
-    try {
-      await premium.buyPro();
-      setLimitReached(false);
-      setError('LexBrain Pro is active. Save your card to continue.');
-      setPhase('ready');
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not complete the purchase.');
-    }
-  };
-
-  const canSave = premium.ready && !limitReached && translated.trim() !== '' && (phase === 'ready' || phase === 'error');
+  const canSave = translated.trim() !== '' && (phase === 'ready' || phase === 'error');
 
   return (
     <div
@@ -163,17 +144,9 @@ export function CaptureSheet({ text, subject, onClose }: Props) {
         {phase === 'error' && (
           <p className="message message-error" role="alert">
             {error}
-            {limitReached ? (
-              premium.lifetimePackage && (
-                <button type="button" className="link-btn" onClick={() => void unlockPro()}>
-                  Unlock Pro{premium.lifetimePackage.product.priceString ? ` · ${premium.lifetimePackage.product.priceString}` : ''}
-                </button>
-              )
-            ) : (
-              <button type="button" className="link-btn" onClick={() => setAttempt((n) => n + 1)}>
-                Try again
-              </button>
-            )}
+            <button type="button" className="link-btn" onClick={() => setAttempt((n) => n + 1)}>
+              Try again
+            </button>
           </p>
         )}
 

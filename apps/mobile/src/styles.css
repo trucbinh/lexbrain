@@ -517,25 +517,6 @@ textarea.input {
   flex-wrap: wrap;
   gap: 12px;
 }
-.premium-settings {
-  display: grid;
-  gap: 10px;
-  padding-top: 16px;
-  border-top: 1px solid var(--line);
-}
-.premium-settings h3 {
-  font-family: var(--font-read);
-  font-size: 1.15rem;
-}
-.premium-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.premium-actions .btn {
-  white-space: normal;
-}
-
 /* ---------- Capture popup (shown over other apps) ---------- */
 html.capture-mode,
 html.capture-mode body,
