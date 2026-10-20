@@ -35,8 +35,18 @@ jobs:
       - name: Build for iOS Simulator
         working-directory: apps/mobile
         run: |
+          if [ -d ios/App/App.xcworkspace ]; then
+            xcode_container=(-workspace ios/App/App.xcworkspace)
+          elif [ -d ios/App/App.xcodeproj ]; then
+            xcode_container=(-project ios/App/App.xcodeproj)
+          else
+            find ios -maxdepth 4 \( -name '*.xcworkspace' -o -name '*.xcodeproj' \) -print
+            echo "No App.xcworkspace or App.xcodeproj found under ios/"
+            exit 1
+          fi
+
           xcodebuild \
-            -workspace ios/App/App.xcworkspace \
+            "${xcode_container[@]}" \
             -scheme App \
             -configuration Debug \
             -sdk iphonesimulator \
