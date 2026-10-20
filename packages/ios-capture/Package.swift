@@ -2,10 +2,10 @@
 import PackageDescription
 
 let package = Package(
-    name: "LexBrainCapture",
+    name: "LexbrainIosCapture",
     platforms: [.iOS(.v15)],
     products: [
-        .library(name: "LexBrainCapture", targets: ["SelectionCapture"])
+        .library(name: "LexbrainIosCapture", targets: ["SelectionCapture"])
     ],
     dependencies: [
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "8.0.0")
