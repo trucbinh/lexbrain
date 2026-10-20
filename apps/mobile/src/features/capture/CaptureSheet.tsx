@@ -26,6 +26,7 @@ export function CaptureSheet({ text, subject, onClose }: Props) {
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [target, setTarget] = useState<string | null>(null);
   const [translated, setTranslated] = useState('');
+  const [contextSentence, setContextSentence] = useState('');
   const [detected, setDetected] = useState<string | undefined>();
   const [phase, setPhase] = useState<Phase>('loading');
   const [error, setError] = useState('');
@@ -77,6 +78,7 @@ export function CaptureSheet({ text, subject, onClose }: Props) {
         translatedText: translated,
         sourceLang: detected ?? 'auto',
         targetLang: target,
+        contextSentence: contextSentence.trim() || undefined,
         sourceTitle: subject,
       };
       await Promise.all([
@@ -140,6 +142,19 @@ export function CaptureSheet({ text, subject, onClose }: Props) {
             />
           )}
         </label>
+
+        {kind === 'word' && (
+          <label className="field">
+            <span className="field-label">Example sentence (optional)</span>
+            <textarea
+              className="input"
+              rows={2}
+              value={contextSentence}
+              onChange={(event) => setContextSentence(event.target.value)}
+              placeholder={`Use ${original} in a sentence`}
+            />
+          </label>
+        )}
 
         {phase === 'error' && (
           <p className="message message-error" role="alert">

@@ -41,8 +41,9 @@ function Face({
       </div>
       <div className="face-body">
         <p className="face-text">{isSource && card.kind === 'word' ? <mark className="marker">{text}</mark> : text}</p>
-        {isSource && card.contextSentence && (
+        {card.contextSentence && (
           <p className="face-context">
+            <span className="face-context-label">Example in {languageName(card.sourceLang)}</span>
             <Highlighted text={card.contextSentence} term={card.sourceText} />
           </p>
         )}
