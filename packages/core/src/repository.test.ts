@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto';
 import Dexie from 'dexie';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { LexBrainDB, setDb } from './db';
+import { backupDatabaseForVersion, restoreDatabaseIfEmpty } from './backup';
 import {
   addCard,
   cardsToCsv,
@@ -12,6 +13,7 @@ import {
   restoreCard,
   reviewCard,
 } from './repository';
+import { getSettings, saveSettings } from './settings';
 
 let n = 0;
 beforeEach(() => {
@@ -43,6 +45,36 @@ describe('repository', () => {
     }
 
     expect(await listCards()).toHaveLength(21);
+  });
+
+  it('backs up once per app version and restores the newest snapshot if the database is empty', async () => {
+    const name = `backup-${n++}`;
+    const original = new LexBrainDB(name);
+    setDb(original);
+    await addCard({ ...base, sourceText: 'remember me' });
+    await backupDatabaseForVersion('1.0.0', original);
+    await saveSettings({ targetLang: 'de' });
+    await addCard({ ...base, sourceText: 'added later' });
+    await backupDatabaseForVersion('1.0.0', original);
+
+    const backups = new Dexie(`${name}-auto-backup`);
+    backups.version(1).stores({ snapshots: 'id, createdAt' });
+    const firstVersionSnapshot = await backups.table('snapshots').get('1.0.0');
+    expect(firstVersionSnapshot?.cards).toHaveLength(1);
+
+    await backupDatabaseForVersion('1.1.0', original);
+    const nextVersionSnapshot = await backups.table('snapshots').get('1.1.0');
+    expect(nextVersionSnapshot?.cards).toHaveLength(2);
+    await backups.close();
+
+    original.close();
+    await original.delete();
+
+    const empty = new LexBrainDB(name);
+    setDb(empty);
+    expect(await restoreDatabaseIfEmpty()).toBe(true);
+    expect(await listCards()).toHaveLength(2);
+    expect(await getSettings()).toMatchObject({ targetLang: 'de' });
   });
 
   it('indexes existing cards during the database upgrade', async () => {

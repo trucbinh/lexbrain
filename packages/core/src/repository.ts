@@ -102,12 +102,13 @@ export async function countCards(): Promise<{ learning: number; mastered: number
 }
 
 async function patch(id: string, changes: Partial<CardRow>): Promise<void> {
+  const db = getDb();
   const indexes: Partial<CardRow> = {};
   if (typeof changes.sourceText === 'string') {
     indexes.sourceKey = normalizeSelection(changes.sourceText).toLowerCase();
   }
   if ('deletedAt' in changes) indexes.isActive = changes.deletedAt ? 0 : 1;
-  await getDb().cards.update(id, { ...changes, ...indexes, updatedAt: now() });
+  await db.cards.update(id, { ...changes, ...indexes, updatedAt: now() });
 }
 
 export const markMastered = (id: string) => patch(id, { status: 'mastered' });

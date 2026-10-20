@@ -1,11 +1,15 @@
 import { StrictMode, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { App as CapacitorApp } from '@capacitor/app';
+import { initializeDatabase } from '@lexbrain/core';
 import { App } from './App';
 import { CaptureSheet } from './features/capture/CaptureSheet';
 import { SelectionCapture, type PendingText } from './plugins/selectionCapture';
 import './styles.css';
 
 async function boot() {
+  const { version, build } = await CapacitorApp.getInfo();
+  await initializeDatabase(`${version}+${build}`);
   const root = createRoot(document.getElementById('root')!);
 
   let pending: PendingText = { text: '', source: null };

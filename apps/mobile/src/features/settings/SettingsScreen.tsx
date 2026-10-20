@@ -52,6 +52,7 @@ export function SettingsScreen() {
       </label>
 
       <p className="field-help">Cards and cached translations stay in this app. Text you translate is sent to Google Translate.</p>
+      <p className="field-help">A snapshot is saved the first time each app version runs and restored if the card database is empty. It cannot survive uninstalling the app, clearing its storage, or changing its app ID.</p>
 
       <p className="field-help">
         <a href="https://trucbinh.github.io/lexbrain/privacy-policy.html">Privacy policy</a>

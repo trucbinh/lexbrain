@@ -3,6 +3,7 @@ export * from './languages';
 export * from './text';
 export * from './srs';
 export * from './db';
+export * from './backup';
 export * from './settings';
 export * from './repository';
 export * from './translation';
