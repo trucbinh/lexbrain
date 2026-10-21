@@ -1,125 +1,227 @@
-# LexBrain
+# 🧠 LexBrain
 
-Save words, sentences and paragraphs from anything you read, translate them, and learn them as flip cards.
+> **Turn anything you read into flashcards.**
 
-```
-lexbrain/
-├─ packages/core        Shared TypeScript: Card model, Dexie (IndexedDB) storage, translation clients,
-│                       SM-2 scheduling and local translation caching.
-├─ apps/mobile          React + Vite + Capacitor app for phones and tablets (Study / Words / Settings),
-│                       plus the capture popup shown over other apps. Native Android sources in native/android.
-├─ apps/extension       Chrome / Edge extension (Manifest V3): select text -> popup -> save. Bundles the mobile
-│                       UI as its study page, so desktop and mobile share one codebase.
-├─ backend/LexBrain.Api Azure Functions (C#, isolated worker): /api/translate proxy + /api/sync/pull|push.
-├─ scripts              apply-android-native.mjs: installs the Android capture activity into the Capacitor project.
-└─ docs                 iOS notes.
-```
+Select a word, sentence, or paragraph while reading. LexBrain translates it, captures the context, and helps you remember it with spaced repetition.
 
-## What works today
+📱 **Android** · 🌐 **Chrome & Edge** · 🔒 **Local-first** · 🧠 **Spaced repetition**
+
+**Select → Add to LexBrain → Save → Keep reading.**
+
+LexBrain integrates directly with Android, Chrome, and Microsoft Edge, allowing you to capture vocabulary without interrupting what you are reading.
+
+<p align="center">
+  <img
+    src="feature-graphic.png"
+    alt="LexBrain's add-card and flashcard study screens"
+    width="1024"
+  >
+</p>
+
+## Why LexBrain?
+
+You are reading an article, book, documentation page, or PDF and encounter a word you want to remember.
+
+Normally, you have to:
+
+1. Copy the word.
+2. Open a translation app.
+3. Translate it.
+4. Open a flashcard or vocabulary app.
+5. Create a card.
+6. Return to what you were reading.
+
+LexBrain turns that into:
+
+**Select → Add to LexBrain → Save → Keep reading.**
+
+Later, LexBrain brings the captured text back as a flashcard using spaced repetition.
+
+Instead of learning vocabulary from arbitrary word lists, you learn from **things you actually read** and retain the context in which you found them.
+
+---
+
+## ✨ Features
+
+### 📖 Capture while you read
+
+Select text without leaving what you are reading.
+
+On **Android**, LexBrain appears as **Add to LexBrain** in the text-selection menu and Android share sheet.
+
+On **Chrome and Microsoft Edge**, select text and use the floating LexBrain button or right-click **Add to LexBrain**.
+
+---
+
+### 🌐 Translate instantly
+
+LexBrain translates captured text before saving it.
+
+You can review and edit the translation before creating the card.
+
+LexBrain automatically detects whether the captured content is a:
+
+- word
+- sentence
+- paragraph
+
+> Translation currently uses Google's undocumented web Translate endpoint. It is not the supported Google Cloud Translation API and may change without notice.
+
+---
+
+### 📝 Remember the context
+
+Vocabulary is easier to understand when you remember where you found it.
+
+When you capture a single word using the browser extension, LexBrain automatically saves its surrounding sentence as context and highlights the captured word when you study it.
+
+For example:
+
+> Sometimes the best discoveries happen through **serendipity** rather than careful planning.
+
+Instead of learning only:
+
+**serendipity → a fortunate accidental discovery**
+
+you retain the sentence in which you originally encountered it.
+
+---
+
+### 🧠 Learn with spaced repetition
+
+LexBrain uses SM-2-based scheduling to decide when cards should appear again.
+
+While studying, you can:
+
+- 👆 Tap a card to flip it.
+- 👉 Swipe right or tap **I know it** when the answer feels familiar.
+- 👈 Swipe left or tap **Show again** to review it sooner.
+- ↩️ Undo the last action from the toast that appears after a review.
+- 🔊 Use the **Listen** button to hear either side with the device's text-to-speech engine.
+
+Cards you already know are marked as **mastered** instead of being permanently deleted, so you can restore them later.
+
+---
+
+### 🔒 Keep your cards local
+
+LexBrain does not require an account or cloud database for normal use.
+
+The following data stays in the application's local IndexedDB database:
+
+- saved cards
+- original captured text
+- translations
+- context sentences
+- study progress
+- mastered cards
+- translation cache
+
+LexBrain does not upload your saved card library or study progress.
+
+When translation is requested, the selected text is sent to Google's translation service.
+
+> Cards currently do not sync between devices.
+
+---
+
+### 📱 Use it on phones and tablets
+
+LexBrain provides responsive layouts for:
+
+- phones
+- tablets
+- desktop browsers
+- dark mode
+
+Tablet mode provides a two-pane layout with the word library and study card visible together.
+
+---
+
+## 🚀 Project status
+
+LexBrain is under active development.
 
 | Capability | Status |
 |---|---|
-| Android: "Add to LexBrain" in the text-selection menu (Chrome, Edge, most PDF readers) and the share sheet | Native sources included (see "Android") |
-| Desktop browser: select text -> floating button -> translate -> edit -> save, with the context sentence captured automatically | Working |
-| Right-click "Add to LexBrain" (also works in Chrome's built-in PDF viewer, where content scripts cannot run) | Working |
-| Cards: tap to flip, swipe right = "I know it" (moved to mastered), swipe left / button = "Show again", undo | Working |
-| Manual removal: mark mastered (restorable) or delete (two-tap confirm) | Working |
-| Phone layout and tablet two-pane layout (word list + study card), dark mode | Working |
-| App-local storage (IndexedDB), translation cache | Working; cards are not uploaded or synced |
-| Spaced repetition (SM-2), listen button (device text-to-speech), CSV copy | Working |
-| Cloud sync | Not exposed by the app UI |
-| iOS capture (Share Extension) | Not implemented; plan in `docs/ios.md` |
+| Chrome extension build | ✅ Built and tested successfully |
+| Microsoft Edge extension build | ✅ Built and tested successfully |
+| Chrome text-selection capture | ✅ Working |
+| Edge text-selection capture | ✅ Working |
+| Chrome and Edge floating capture button | ✅ Working |
+| Chrome and Edge context-menu capture | ✅ Working |
+| Chrome built-in PDF viewer capture through the context menu | ✅ Working |
+| Automatic context-sentence capture | ✅ Working |
+| Translation | ✅ Working |
+| Flashcards | ✅ Working |
+| SM-2 spaced repetition | ✅ Working |
+| Text-to-speech | ✅ Working |
+| Local IndexedDB storage | ✅ Working |
+| Translation cache | ✅ Working |
+| Phone layout | ✅ Working |
+| Tablet two-pane layout | ✅ Working |
+| Dark mode | ✅ Working |
+| Android APK build | ✅ Built successfully |
+| Android APK installation | ✅ Installed successfully on a real device |
+| Android app | ✅ Working on a real device |
+| Android text-selection capture | ✅ Working on a real device |
+| Android study review gestures | ✅ Working on a real device |
+| Cloud sync | 🚧 Backend code exists but is not exposed in the app |
+| iOS Share Extension | 📋 Planned |
 
-## Quick start
+---
 
-Requirements: Node 22+, pnpm 11+. Android builds also need Android Studio (and the JDK version your Capacitor release requires - check the Capacitor docs for your version).
+## 📦 Install
+
+LexBrain is currently a developer preview.
+
+Packaged store releases are not available yet. Chrome, Edge, and Android builds currently need to be built from source.
+
+### Requirements
+
+- Node.js 22+
+- pnpm 11+
+- Android Studio for Android builds
+- A JDK version compatible with the installed Capacitor version
+
+Clone the repository and install the dependencies:
 
 ```bash
+git clone https://github.com/trucbinh/lexbrain.git
+cd lexbrain
+
 pnpm install
-pnpm test              # unit tests (core)
+```
+
+Common development commands:
+
+```bash
+pnpm dev:mobile
+pnpm build:mobile
+pnpm build:ext
+```
+
+Run the checks:
+
+```bash
+pnpm test
 pnpm typecheck
-pnpm dev:mobile        # http://localhost:5173
 ```
 
-Try the capture popup in a browser without a phone: <http://localhost:5173/?capture=serendipity>
+---
 
-Translation temporarily uses Google's undocumented, keyless web Translate endpoint. It is not the supported Google Cloud Translation API and may change without notice. Card data and the translation cache stay in the app's local database; text submitted for translation is sent to Google.
+## 🌐 Chrome and Microsoft Edge
 
-### Chrome and Edge extension
+The LexBrain browser extension has been successfully built and tested on both Chrome and Microsoft Edge.
 
-```bash
-pnpm build:ext         # builds the study UI into the extension, then bundles the extension
-```
+The extension supports:
 
-The same Manifest V3 build supports both browsers:
+- selecting text and sending it directly to LexBrain
+- opening a floating **Add to LexBrain** action
+- right-clicking selected text and choosing **Add to LexBrain**
+- capturing the surrounding sentence for individual words
+- translating and editing captured text before saving
+- opening the LexBrain study and vocabulary library from the toolbar
 
-- **Chrome:** open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, then select `apps/extension/dist`.
-- **Edge:** open `edge://extensions`, enable Developer mode, choose **Load unpacked**, then select `apps/extension/dist`.
+### Build the extension
 
-Select text on a page and click **Add to LexBrain**; the toolbar icon opens the study / library app. For store submission, zip the contents of `apps/extension/dist` (so `manifest.json` is at the archive root) and submit that same package separately to the Chrome Web Store and Microsoft Edge Add-ons. Store listings and review are separate.
-
-The extension requests translations from Google's Translate web endpoint; its host permission is declared in `apps/extension/manifest.json`.
-
-> Cards live in each app's own local database. The app UI does not sync cards between devices.
-
-### Mobile bundles
-
-The production web assets are bundled into Capacitor's native app. No LexBrain backend or cloud database is required.
-
-```bash
-pnpm --filter @lexbrain/mobile build
-cd apps/mobile
-npx cap add android
-cd ../..
-node scripts/apply-android-native.mjs     # installs the capture activity, plugin and theme
-pnpm cap:sync
-cd apps/mobile && npx cap open android    # run from Android Studio
-```
-
-Build the signed Android App Bundle (`.aab`) from Android Studio. For iOS, run `npx cap add ios`, `npx cap sync ios`, then `ruby scripts/apply-ios-native.rb` and open the iOS project in Xcode on macOS. Android selection-menu capture and iOS Share Sheet/Safari capture are included; see `docs/ios.md` for setup and required App Group signing configuration.
-
-Before publishing, change `appId` in `apps/mobile/capacitor.config.ts` (it cannot change after release) and re-run the steps above on a fresh `android/` folder.
-
-How capture works:
-
-- `CaptureActivity` (translucent) declares the `PROCESS_TEXT` and `SEND text/plain` intent filters. Android lists it as **Add to LexBrain** in the selection menu, next to Translate, ChatGPT and so on.
-- It hosts the same React app. The `SelectionCapture` plugin returns the selected text; the app sees pending text and renders only the bottom sheet over the page you were reading.
-- Saving writes to the same IndexedDB the main app uses, then closes the popup and returns you to the reader.
-- `PROCESS_TEXT` delivers only the selected text, with no surrounding sentence or page URL. If you want context on mobile, select the whole sentence.
-
-Re-running `apply-android-native.mjs` is safe (it detects its own changes). If you delete `android/`, run it again after `cap add android`.
-
-### Backend components
-
-Legacy Azure Functions and sync code remain in the repository, but the mobile app does not call them. Do not deploy or configure them for a local-only mobile build. Google receives the text submitted to its translation endpoint; LexBrain does not send saved cards or study progress.
-
-## Design notes
-
-- **Legacy sync model.** Last-write-wins on a client `updatedAt`; deletes are tombstones. This code is not used by the mobile app.
-- **Archive by default.** "I know it" marks a card mastered and keeps it (restorable from Words); permanent deletion is a separate, confirmed action.
-- **Dedupe.** Saving the same text for the same target language updates the existing card.
-- **Card kinds.** `word` (up to 3 words, or 4 CJK characters), `sentence`, `paragraph`, detected automatically. For single words the page's sentence is stored as context and highlighted on the card.
-- **Replaceable translators.** Client side: `TranslationProvider`. Server side: `ITranslationProvider`.
-
-## What has and has not been verified
-
-Verified in the build environment:
-
-- Core and app TypeScript checks pass; 26 core unit tests pass (text detection, SM-2, repository against a fake IndexedDB, sync client against a stubbed server, Google Translate response handling).
-- Production builds of the mobile app and the extension.
-- Headless Chromium end-to-end: study flow (flip, mastered, undo), search, capture popup with a mocked translator, error state, tablet layout.
-- Translation provider tests validate the Google endpoint request and response mapping without making live requests.
-- `cap add android` followed by `apply-android-native.mjs` produces a valid manifest and the expected sources.
-
-**Not** verified (no SDK available in the build environment):
-
-- The Android Gradle build and running on a device or emulator. The Java sources follow the Capacitor `BridgeActivity` / `@CapacitorPlugin` APIs but have not been compiled.
-- The C# backend has not been compiled or run. Expect to fix small compile issues on first build.
-- Live Google Translate behavior and translation quality.
-- iOS native build; the iOS Share Extension is not implemented.
-
-## Next steps
-
-1. Run on an Android device and confirm "Add to LexBrain" appears in Chrome's selection menu.
-2. Add a PDF.js reader (Chrome's built-in viewer blocks content scripts) and the iOS Share Extension.
-3. Add dictionary lookups for single words (definition, part of speech) beside machine translation.

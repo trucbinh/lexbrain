@@ -31,7 +31,7 @@ export function StudyScreen({ onAddCard }: Props) {
   const [flipped, setFlipped] = useState(false);
   const [dx, setDx] = useState(0);
   const [undo, setUndo] = useState<Undo | null>(null);
-  const drag = useRef<{ startX: number; moved: boolean } | null>(null);
+  const drag = useRef<{ startX: number; moved: boolean; deltaX: number } | null>(null);
   const undoTimer = useRef<number | undefined>(undefined);
 
   const load = useCallback(async (includeNotDue = false) => {
@@ -104,12 +104,13 @@ export function StudyScreen({ onAddCard }: Props) {
   }, [know, again]);
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    drag.current = { startX: e.clientX, moved: false };
+    drag.current = { startX: e.clientX, moved: false, deltaX: 0 };
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!drag.current) return;
     const delta = e.clientX - drag.current.startX;
+    drag.current.deltaX = delta;
     if (Math.abs(delta) > 6) drag.current.moved = true;
     setDx(delta);
   };
@@ -117,11 +118,12 @@ export function StudyScreen({ onAddCard }: Props) {
     const d = drag.current;
     drag.current = null;
     if (!d) return;
+    const delta = d.deltaX;
     if (!d.moved) {
       setDx(0);
       setFlipped((f) => !f);
-    } else if (dx > SWIPE_DISTANCE) void know();
-    else if (dx < -SWIPE_DISTANCE) void again();
+    } else if (delta > SWIPE_DISTANCE) void know();
+    else if (delta < -SWIPE_DISTANCE) void again();
     else setDx(0);
   };
 
