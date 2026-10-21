@@ -12,7 +12,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSettings } from '../../hooks/useSettings';
 import { FlipCard } from './FlipCard';
 
-const SWIPE_DISTANCE = 100;
+const SWIPE_DISTANCE = 80;
 
 interface Props {
   onAddCard: () => void;
@@ -103,18 +103,7 @@ export function StudyScreen({ onAddCard }: Props) {
     return () => window.removeEventListener('keydown', onKey);
   }, [know, again]);
 
-  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    drag.current = { startX: e.clientX, moved: false, deltaX: 0 };
-    e.currentTarget.setPointerCapture(e.pointerId);
-  };
-  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!drag.current) return;
-    const delta = e.clientX - drag.current.startX;
-    drag.current.deltaX = delta;
-    if (Math.abs(delta) > 6) drag.current.moved = true;
-    setDx(delta);
-  };
-  const onPointerUp = () => {
+  const finishDrag = () => {
     const d = drag.current;
     drag.current = null;
     if (!d) return;
@@ -125,6 +114,31 @@ export function StudyScreen({ onAddCard }: Props) {
     } else if (delta > SWIPE_DISTANCE) void know();
     else if (delta < -SWIPE_DISTANCE) void again();
     else setDx(0);
+  };
+
+  const startDrag = (clientX: number) => {
+    if (drag.current) return;
+    drag.current = { startX: clientX, moved: false, deltaX: 0 };
+  };
+
+  const moveDrag = (clientX: number) => {
+    if (!drag.current) return;
+    const delta = clientX - drag.current.startX;
+    drag.current.deltaX = delta;
+    if (Math.abs(delta) > 6) drag.current.moved = true;
+    setDx(delta);
+  };
+
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    startDrag(e.clientX);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (drag.current) e.preventDefault();
+    moveDrag(e.clientX);
+  };
+  const onPointerUp = () => {
+    finishDrag();
   };
 
   if (!queue) return <div className="study" aria-busy="true" />;

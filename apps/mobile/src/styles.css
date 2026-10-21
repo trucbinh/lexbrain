@@ -311,7 +311,7 @@ textarea.input {
   position: relative;
   min-height: 320px;
   perspective: 1400px;
-  touch-action: pan-y;
+  touch-action: none;
   cursor: grab;
   transition: transform 0.2s ease;
   user-select: none;
