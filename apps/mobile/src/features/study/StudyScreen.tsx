@@ -13,6 +13,8 @@ import { useSettings } from '../../hooks/useSettings';
 import { FlipCard } from './FlipCard';
 
 const SWIPE_DISTANCE = 80;
+const MOVE_DEADZONE = 8;
+const HOLD_TO_SWIPE_MS = 180;
 
 interface Props {
   onAddCard: () => void;
@@ -31,7 +33,7 @@ export function StudyScreen({ onAddCard }: Props) {
   const [flipped, setFlipped] = useState(false);
   const [dx, setDx] = useState(0);
   const [undo, setUndo] = useState<Undo | null>(null);
-  const drag = useRef<{ startX: number; moved: boolean; deltaX: number } | null>(null);
+  const drag = useRef<{ startX: number; startTime: number; moved: boolean; deltaX: number; armed: boolean } | null>(null);
   const undoTimer = useRef<number | undefined>(undefined);
 
   const load = useCallback(async (includeNotDue = false) => {
@@ -51,6 +53,11 @@ export function StudyScreen({ onAddCard }: Props) {
   }, [counts?.learning, queue, load]);
 
   const current = queue?.[0];
+
+  useEffect(() => {
+    drag.current = null;
+    setDx(0);
+  }, [current?.id]);
 
   const showUndo = (card: Card, label: string) => {
     window.clearTimeout(undoTimer.current);
@@ -118,18 +125,31 @@ export function StudyScreen({ onAddCard }: Props) {
 
   const startDrag = (clientX: number) => {
     if (drag.current) return;
-    drag.current = { startX: clientX, moved: false, deltaX: 0 };
+    drag.current = { startX: clientX, startTime: Date.now(), moved: false, deltaX: 0, armed: false };
   };
 
   const moveDrag = (clientX: number) => {
-    if (!drag.current) return;
-    const delta = clientX - drag.current.startX;
-    drag.current.deltaX = delta;
-    if (Math.abs(delta) > 6) drag.current.moved = true;
+    const d = drag.current;
+    if (!d) return;
+    const now = Date.now();
+    if (now - d.startTime < HOLD_TO_SWIPE_MS) {
+      setDx(0);
+      return;
+    }
+    if (!d.armed) d.armed = true;
+    const delta = clientX - d.startX;
+    const abs = Math.abs(delta);
+    if (abs < MOVE_DEADZONE) {
+      setDx(0);
+      return;
+    }
+    d.deltaX = delta;
+    d.moved = true;
     setDx(delta);
   };
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'touch') e.preventDefault();
     startDrag(e.clientX);
     e.currentTarget.setPointerCapture(e.pointerId);
   };
