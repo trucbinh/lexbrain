@@ -1,15 +1,16 @@
 // Bundles the extension with esbuild. The study/library UI is the mobile app, built by
 // `pnpm --filter @lexbrain/mobile build:ext` into dist/app (run both with `pnpm build:ext` at the repo root).
 import { build } from 'esbuild';
-import { cpSync, mkdirSync } from 'node:fs';
+import { cpSync, mkdirSync, rmSync } from 'node:fs';
 
 mkdirSync('dist', { recursive: true });
+rmSync('dist/content.js', { force: true });
 
 await build({
-  entryPoints: { background: 'src/background.ts', content: 'src/content.ts' },
+  entryPoints: { background: 'src/background.ts' },
   outdir: 'dist',
   bundle: true,
-  format: 'iife', // content scripts cannot be ES modules
+  format: 'iife', // The manifest uses a classic service worker.
   target: 'chrome110',
   logLevel: 'info',
 });

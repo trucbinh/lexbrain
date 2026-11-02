@@ -18,7 +18,7 @@ export class GoogleTranslateProvider implements TranslationProvider {
     for (const chunk of chunkText(text, 4500)) {
       const params = new URLSearchParams({ client: 'gtx', sl: from, tl: target, dt: 't', q: chunk });
       const url = `https://translate.googleapis.com/translate_a/single?${params}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
       if (!res.ok) throw new Error(`Google Translate request failed (${res.status}).`);
       const data: unknown = await res.json();
       if (!Array.isArray(data) || !Array.isArray(data[0])) throw new Error('Google Translate returned an invalid response.');

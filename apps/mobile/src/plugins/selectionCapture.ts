@@ -2,6 +2,7 @@ import { registerPlugin } from '@capacitor/core';
 
 export interface PendingText {
   text: string;
+  contextSentence?: string;
   /** How the text arrived: Android, iOS Share Sheet/Safari, or the web dev fallback. */
   source: 'process_text' | 'share' | 'safari' | 'web' | null;
   subject?: string;

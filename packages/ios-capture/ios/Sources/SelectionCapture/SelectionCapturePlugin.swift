@@ -19,16 +19,19 @@ public class SelectionCapturePlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         let text = defaults.string(forKey: "pendingText") ?? ""
+        let contextSentence = defaults.string(forKey: "pendingContextSentence")
         let source = defaults.string(forKey: "pendingSource")
         let subject = defaults.string(forKey: "pendingSubject")
         let sourceUrl = defaults.string(forKey: "pendingSourceUrl")
 
         defaults.removeObject(forKey: "pendingText")
+        defaults.removeObject(forKey: "pendingContextSentence")
         defaults.removeObject(forKey: "pendingSource")
         defaults.removeObject(forKey: "pendingSubject")
         defaults.removeObject(forKey: "pendingSourceUrl")
 
         var result: [String: Any] = ["text": text]
+        if let contextSentence { result["contextSentence"] = contextSentence }
         if let source { result["source"] = source }
         if let subject { result["subject"] = subject }
         if let sourceUrl { result["sourceUrl"] = sourceUrl }

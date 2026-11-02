@@ -26,6 +26,29 @@
     button = undefined;
   }
 
+  function getContextSentence(range, selectedText) {
+    if (selectedText.split(' ').length > 3 || /[.!?。！？]/.test(selectedText)) return undefined;
+    const node = range.commonAncestorContainer;
+    const element = node.nodeType === Node.TEXT_NODE ? node.parentElement : node;
+    const block = element?.closest('p, li, blockquote, td, dd, h1, h2, h3, h4, h5, h6, article, div');
+    if (!block) return undefined;
+
+    const prefixRange = range.cloneRange();
+    prefixRange.selectNodeContents(block);
+    prefixRange.setEnd(range.startContainer, range.startOffset);
+    const start = prefixRange.toString().replace(/\s+/g, ' ').trim().length;
+    const content = block.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+    if (!content) return undefined;
+
+    const before = content.slice(0, start);
+    const after = content.slice(start);
+    const previousBoundary = Math.max(before.lastIndexOf('.'), before.lastIndexOf('!'), before.lastIndexOf('?'), before.lastIndexOf('。'), before.lastIndexOf('！'), before.lastIndexOf('？'));
+    const nextBoundary = after.search(/[.!?。！？]/);
+    const sentence = content.slice(previousBoundary + 1, nextBoundary < 0 ? content.length : start + nextBoundary + 1).trim();
+    if (sentence.length <= selectedText.length || !sentence.toLowerCase().includes(selectedText.toLowerCase())) return undefined;
+    return sentence.length > 400 ? `${sentence.slice(0, 397)}…` : sentence;
+  }
+
   function onSelection() {
     const selection = window.getSelection();
     const text = selection?.toString().replace(/\s+/g, ' ').trim() ?? '';
@@ -33,7 +56,9 @@
       hide();
       return;
     }
-    const rect = selection.getRangeAt(0).getBoundingClientRect();
+    const range = selection.getRangeAt(0);
+    const contextSentence = getContextSentence(range, text);
+    const rect = range.getBoundingClientRect();
     if (!rect.width && !rect.height) return;
 
     const control = ensureButton();
@@ -45,6 +70,7 @@
       try {
         const response = await browser.runtime.sendNativeMessage('datamerge.xyz.lexbrain.app', {
           text,
+          contextSentence,
           title: document.title,
           url: location.href,
         });

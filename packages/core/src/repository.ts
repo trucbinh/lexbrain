@@ -35,7 +35,7 @@ async function saveCard(input: NewCardInput, userId: string): Promise<Card> {
     if (existing) {
       const updated: CardRow = {
         ...existing,
-        translatedText: input.translatedText,
+        translatedText: input.translatedText.trim() || existing.translatedText,
         contextSentence: input.contextSentence ?? existing.contextSentence,
         sourceUrl: input.sourceUrl ?? existing.sourceUrl,
         sourceTitle: input.sourceTitle ?? existing.sourceTitle,
@@ -113,7 +113,10 @@ async function patch(id: string, changes: Partial<CardRow>): Promise<void> {
 
 export const markMastered = (id: string) => patch(id, { status: 'mastered' });
 export const restoreCard = (id: string) => patch(id, { status: 'learning', dueAt: undefined, reps: 0, interval: 0 });
-export const updateCard = (id: string, changes: Partial<Pick<Card, 'translatedText' | 'note' | 'sourceText'>>) =>
+export const updateCard = (
+  id: string,
+  changes: Partial<Pick<Card, 'translatedText' | 'note' | 'sourceText' | 'sourceLang'>>,
+) =>
   patch(id, changes);
 
 /** Soft delete (tombstone) so the deletion can sync to other devices. */

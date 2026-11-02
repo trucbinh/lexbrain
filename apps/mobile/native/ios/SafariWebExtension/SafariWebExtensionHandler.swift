@@ -19,6 +19,7 @@ final class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         }
 
         defaults.set(text, forKey: "pendingText")
+        defaults.set(message["contextSentence"] as? String, forKey: "pendingContextSentence")
         defaults.set("safari", forKey: "pendingSource")
         defaults.set(message["title"] as? String, forKey: "pendingSubject")
         defaults.set(message["url"] as? String, forKey: "pendingSourceUrl")

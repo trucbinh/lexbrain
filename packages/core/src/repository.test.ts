@@ -113,6 +113,19 @@ describe('repository', () => {
     await expect(addCard({ ...base, sourceText: '   ' })).rejects.toThrow(/empty/);
   });
 
+  it('stores a card with an empty translation for deferred translation', async () => {
+    const card = await addCard({ sourceText: 'hello', translatedText: '', targetLang: 'fr' });
+    expect(card.translatedText).toBe('');
+    expect(await listCards()).toContainEqual(expect.objectContaining({ id: card.id, sourceText: 'hello' }));
+  });
+
+  it('does not erase an existing translation when an offline duplicate is captured', async () => {
+    const saved = await addCard({ ...base, sourceText: 'hello' });
+    const duplicate = await addCard({ sourceText: 'hello', translatedText: '', targetLang: 'fr' });
+    expect(duplicate.id).toBe(saved.id);
+    expect(duplicate.translatedText).toBe(saved.translatedText);
+  });
+
   it('archives instead of deleting, and can restore', async () => {
     const c = await addCard({ ...base, sourceText: 'ephemeral' });
     await markMastered(c.id);

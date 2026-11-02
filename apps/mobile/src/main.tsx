@@ -45,6 +45,8 @@ function Root({ initialPending }: { initialPending: PendingText }) {
     return (
       <CaptureSheet
         text={pending.text}
+        contextSentence={pending.contextSentence}
+        source={pending.source}
         subject={pending.subject}
         sourceUrl={pending.sourceUrl}
         onClose={() => void closeCapture()}

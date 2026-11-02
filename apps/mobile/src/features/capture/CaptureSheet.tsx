@@ -13,21 +13,23 @@ import { useEffect, useRef, useState } from 'react';
 
 interface Props {
   text: string;
+  contextSentence?: string;
+  source?: 'process_text' | 'share' | 'safari' | 'web' | null;
   subject?: string;
   sourceUrl?: string;
   onClose: () => void;
 }
 
-type Phase = 'loading' | 'ready' | 'error' | 'saving' | 'saved';
+type Phase = 'loading' | 'ready' | 'pending' | 'error' | 'saving' | 'saved';
 
 /** The popup shown over the browser / PDF reader after "Add to LexBrain" is chosen. */
-export function CaptureSheet({ text, subject, sourceUrl, onClose }: Props) {
+export function CaptureSheet({ text, contextSentence: initialContextSentence, source, subject, sourceUrl, onClose }: Props) {
   const original = normalizeSelection(text);
   const kind = detectKind(original);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [target, setTarget] = useState<string | null>(null);
   const [translated, setTranslated] = useState('');
-  const [contextSentence, setContextSentence] = useState('');
+  const [contextSentence, setContextSentence] = useState(initialContextSentence ?? '');
   const [detected, setDetected] = useState<string | undefined>();
   const [phase, setPhase] = useState<Phase>('loading');
   const [error, setError] = useState('');
@@ -47,6 +49,13 @@ export function CaptureSheet({ text, subject, sourceUrl, onClose }: Props) {
     setPhase('loading');
     setError('');
     edited.current = false;
+    if (!navigator.onLine) {
+      setError('No internet connection. This word or phrase will be saved and translated when you open it to learn.');
+      setPhase('pending');
+      return () => {
+        cancelled = true;
+      };
+    }
     translateWithCache(createTranslator(), original, target)
       .then((r) => {
         if (cancelled) return;
@@ -56,8 +65,8 @@ export function CaptureSheet({ text, subject, sourceUrl, onClose }: Props) {
       })
       .catch((e: unknown) => {
         if (cancelled) return;
-        setError(e instanceof Error ? e.message : 'Translation failed.');
-        setPhase('error');
+        setError('Google Translate could not be reached reliably. This word or phrase will be saved and translated when you open it to learn.');
+        setPhase('pending');
       });
     return () => {
       cancelled = true;
@@ -95,7 +104,7 @@ export function CaptureSheet({ text, subject, sourceUrl, onClose }: Props) {
     }
   };
 
-  const canSave = translated.trim() !== '' && (phase === 'ready' || phase === 'error');
+  const canSave = phase === 'pending' || (translated.trim() !== '' && (phase === 'ready' || phase === 'error'));
 
   return (
     <div
@@ -146,19 +155,27 @@ export function CaptureSheet({ text, subject, sourceUrl, onClose }: Props) {
         </label>
 
         {kind === 'word' && (
-          <label className="field">
-            <span className="field-label">Example sentence (optional)</span>
-            <textarea
-              className="input"
-              rows={2}
-              value={contextSentence}
-              onChange={(event) => setContextSentence(event.target.value)}
-              placeholder={`Use ${original} in a sentence`}
-            />
-          </label>
+          <>
+            {source === 'process_text' && !contextSentence && (
+              <p className="message" role="note">
+                Android provided only the selected text. Paste or type its surrounding sentence below to save it as an
+                example.
+              </p>
+            )}
+            <label className="field">
+              <span className="field-label">Example sentence (optional)</span>
+              <textarea
+                className="input"
+                rows={2}
+                value={contextSentence}
+                onChange={(event) => setContextSentence(event.target.value)}
+                placeholder={`Use ${original} in a sentence`}
+              />
+            </label>
+          </>
         )}
 
-        {phase === 'error' && (
+        {(phase === 'error' || phase === 'pending') && (
           <p className="message message-error" role="alert">
             {error}
             <button type="button" className="link-btn" onClick={() => setAttempt((n) => n + 1)}>
@@ -172,7 +189,7 @@ export function CaptureSheet({ text, subject, sourceUrl, onClose }: Props) {
             Cancel
           </button>
           <button type="button" className="btn btn-primary" disabled={!canSave} onClick={() => void save()}>
-            {phase === 'saved' ? 'Saved' : phase === 'saving' ? 'Saving' : 'Save card'}
+            {phase === 'saved' ? 'Saved' : phase === 'saving' ? 'Saving' : phase === 'pending' ? 'Save for later' : 'Save card'}
           </button>
         </div>
       </section>
