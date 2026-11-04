@@ -78,7 +78,9 @@ export function StudyScreen({ onAddCard }: Props) {
   const [dx, setDx] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [undo, setUndo] = useState<Undo | null>(null);
-  const [pendingTranslationState, setPendingTranslationState] = useState<'translating' | 'offline' | 'failed' | null>(null);
+  const [pendingTranslationState, setPendingTranslationState] = useState<
+    'translating' | 'offline' | 'paused' | 'failed' | null
+  >(null);
   const [translationAttempt, setTranslationAttempt] = useState(0);
 
   const gesture = useRef<Gesture | null>(null);
@@ -116,51 +118,85 @@ export function StudyScreen({ onAddCard }: Props) {
   const current = queue?.[0];
 
   useEffect(() => {
-    if (!current || current.translatedText) {
+    if (!current || current.translationStatus === 'translated') {
       setPendingTranslationState(null);
       return;
     }
 
     let active = true;
     let running = false;
+    const shouldRetry = () => navigator.onLine && document.visibilityState === 'visible';
+    const updateTranslationStatus = async (translationStatus: Card['translationStatus']) => {
+      try {
+        await updateCard(current.id, { translationStatus });
+      } catch {
+        return;
+      }
+    };
     const translatePending = async () => {
       if (running) return;
-      running = true;
       if (!navigator.onLine) {
         if (active) setPendingTranslationState('offline');
-        running = false;
+        await updateTranslationStatus('pending');
+        return;
+      }
+      if (document.visibilityState !== 'visible') {
+        if (active) setPendingTranslationState('paused');
         return;
       }
 
+      running = true;
       if (active) setPendingTranslationState('translating');
       try {
-        const result = await translateWithCache(createTranslator(), current.sourceText, current.targetLang);
+        await updateTranslationStatus('pending');
+        const result = await translateWithCache(createTranslator(), current.sourceText, current.targetLang, 'auto', {
+          shouldRetry,
+        });
         await updateCard(current.id, {
           translatedText: result.translatedText,
           sourceLang: result.detectedLang ?? current.sourceLang,
+          translationStatus: 'translated',
         });
         if (active) {
           setQueue((items) => items?.map((card) =>
-            card.id === current.id
-              ? { ...card, translatedText: result.translatedText, sourceLang: result.detectedLang ?? card.sourceLang }
-              : card,
+            card.id === current.id ? {
+              ...card,
+              translatedText: result.translatedText,
+              translationStatus: 'translated',
+              sourceLang: result.detectedLang ?? card.sourceLang,
+            } : card,
           ) ?? null);
           setPendingTranslationState(null);
         }
       } catch {
-        if (active) setPendingTranslationState('failed');
+        const canContinue = shouldRetry();
+        await updateTranslationStatus(canContinue ? 'failed' : 'pending');
+        if (active) setPendingTranslationState(canContinue ? 'failed' : navigator.onLine ? 'paused' : 'offline');
       } finally {
         running = false;
       }
     };
 
+    const resumeTranslation = () => {
+      if (document.visibilityState === 'visible') void translatePending();
+    };
+    const onOffline = () => {
+      if (active && !running) {
+        setPendingTranslationState('offline');
+        void updateTranslationStatus('pending');
+      }
+    };
     void translatePending();
-    window.addEventListener('online', translatePending);
+    window.addEventListener('online', resumeTranslation);
+    window.addEventListener('offline', onOffline);
+    document.addEventListener('visibilitychange', resumeTranslation);
     return () => {
       active = false;
-      window.removeEventListener('online', translatePending);
+      window.removeEventListener('online', resumeTranslation);
+      window.removeEventListener('offline', onOffline);
+      document.removeEventListener('visibilitychange', resumeTranslation);
     };
-  }, [current?.id, current?.translatedText, current?.sourceText, current?.targetLang, current?.sourceLang, translationAttempt]);
+  }, [current?.id, current?.translationStatus, current?.sourceText, current?.targetLang, current?.sourceLang, translationAttempt]);
 
   const showUndo = useCallback((card: Card, label: string) => {
     window.clearTimeout(undoTimer.current);
@@ -365,6 +401,8 @@ export function StudyScreen({ onAddCard }: Props) {
                 ? 'Translating this saved card…'
                 : pendingTranslationState === 'offline'
                   ? 'This word or phrase is saved. It will be translated when you are online.'
+                  : pendingTranslationState === 'paused'
+                    ? 'Translation will resume when you return to the app.'
                   : 'Translation is unavailable right now. This card is saved; try again when your connection is stable.'}
               {pendingTranslationState !== 'translating' && (
                 <button type="button" className="link-btn" onClick={() => setTranslationAttempt((attempt) => attempt + 1)}>

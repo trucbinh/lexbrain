@@ -53,6 +53,17 @@ export class LexBrainDB extends Dexie {
           card.isActive = card.deletedAt ? 0 : 1;
         });
       });
+    this.version(4)
+      .stores({
+        cards: 'id, status, kind, targetLang, sourceLang, updatedAt, dueAt, deletedAt, isActive, [targetLang+sourceKey]',
+        settings: 'key',
+        translationCache: 'key, createdAt',
+      })
+      .upgrade(async (transaction) => {
+        await transaction.table('cards').toCollection().modify((card: CardRow) => {
+          card.translationStatus = card.translatedText?.trim() ? 'translated' : 'pending';
+        });
+      });
 
     this.cards.hook('creating', (_key, card) => {
       card.sourceKey = normalizeSelection(card.sourceText).toLowerCase();

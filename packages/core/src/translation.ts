@@ -7,6 +7,48 @@ export interface TranslationProvider {
   translate(text: string, target: string, source?: string): Promise<TranslateResult>;
 }
 
+export interface TranslationRetryOptions {
+  shouldRetry?: () => boolean;
+}
+
+class TranslationHttpError extends Error {
+  constructor(readonly status: number) {
+    super(`Google Translate request failed (${status}).`);
+  }
+}
+
+function isTransientFailure(error: unknown): boolean {
+  if (error instanceof TranslationHttpError) return error.status === 429 || error.status >= 500;
+  return error instanceof TypeError || (error instanceof DOMException && ['AbortError', 'TimeoutError'].includes(error.name));
+}
+
+const wait = (milliseconds: number) => new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
+
+export async function translateWithRetry(
+  provider: TranslationProvider,
+  text: string,
+  target: string,
+  source = 'auto',
+  options: TranslationRetryOptions = {},
+): Promise<TranslateResult> {
+  const maxAttempts = 3;
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await provider.translate(text, target, source);
+    } catch (error) {
+      if (
+        attempt >= maxAttempts - 1 ||
+        !isTransientFailure(error) ||
+        (options.shouldRetry && !options.shouldRetry())
+      ) {
+        throw error;
+      }
+      await wait(250 * 2 ** attempt);
+      if (options.shouldRetry && !options.shouldRetry()) throw error;
+    }
+  }
+}
+
 /** Uses Google's undocumented, keyless Translate web endpoint. It may change without notice. */
 export class GoogleTranslateProvider implements TranslationProvider {
   readonly name = 'google-translate';
@@ -19,7 +61,7 @@ export class GoogleTranslateProvider implements TranslationProvider {
       const params = new URLSearchParams({ client: 'gtx', sl: from, tl: target, dt: 't', q: chunk });
       const url = `https://translate.googleapis.com/translate_a/single?${params}`;
       const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
-      if (!res.ok) throw new Error(`Google Translate request failed (${res.status}).`);
+      if (!res.ok) throw new TranslationHttpError(res.status);
       const data: unknown = await res.json();
       if (!Array.isArray(data) || !Array.isArray(data[0])) throw new Error('Google Translate returned an invalid response.');
       const translated = data[0]
@@ -44,6 +86,7 @@ export async function translateWithCache(
   rawText: string,
   target: string,
   source = 'auto',
+  retryOptions: TranslationRetryOptions = {},
 ): Promise<TranslateResult> {
   const text = normalizeSelection(rawText);
   if (!text) throw new Error('Select some text first.');
@@ -53,7 +96,7 @@ export async function translateWithCache(
   const hit = await db.translationCache.get(key);
   if (hit) return { translatedText: hit.translatedText, detectedLang: hit.detectedLang, provider: 'cache' };
 
-  const result = await provider.translate(text, target, source);
+  const result = await translateWithRetry(provider, text, target, source, retryOptions);
   await db.translationCache.put({
     key,
     translatedText: result.translatedText,

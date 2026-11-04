@@ -1,5 +1,6 @@
 export type CardKind = 'word' | 'sentence' | 'paragraph';
 export type CardStatus = 'learning' | 'mastered';
+export type TranslationStatus = 'pending' | 'translated' | 'failed';
 export type StudyDirection = 'source-to-target' | 'target-to-source';
 
 /** A saved word, sentence or paragraph with its translation. */
@@ -12,6 +13,7 @@ export interface Card {
   /** BCP-47 code, or "auto" when the language was not detected. */
   sourceLang: string;
   translatedText: string;
+  translationStatus: TranslationStatus;
   targetLang: string;
   /** The sentence the word was found in. */
   contextSentence?: string;
@@ -33,6 +35,7 @@ export interface Card {
 export interface NewCardInput {
   sourceText: string;
   translatedText: string;
+  translationStatus?: TranslationStatus;
   sourceLang?: string;
   targetLang: string;
   contextSentence?: string;

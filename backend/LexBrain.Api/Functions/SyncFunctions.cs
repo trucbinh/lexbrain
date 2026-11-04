@@ -10,6 +10,7 @@ public sealed class SyncFunctions(ICardStore store, IUserResolver users, RateLim
     private const int MaxCardsPerPush = 500;
     private static readonly HashSet<string> Kinds = ["word", "sentence", "paragraph"];
     private static readonly HashSet<string> Statuses = ["learning", "mastered"];
+    private static readonly HashSet<string> TranslationStatuses = ["pending", "translated", "failed"];
 
     [Function("SyncPull")]
     public async Task<IActionResult> Pull(
@@ -24,6 +25,10 @@ public sealed class SyncFunctions(ICardStore store, IUserResolver users, RateLim
         var serverTime = Clock.NowIso();
         var since = req.Query["since"].ToString();
         var cards = await store.GetChangedSinceAsync(user, since, ct);
+        foreach (var card in cards)
+        {
+            card.TranslationStatus ??= string.IsNullOrWhiteSpace(card.TranslatedText) ? "pending" : "translated";
+        }
         return new OkObjectResult(new PullResponse(cards, serverTime));
     }
 
@@ -54,8 +59,10 @@ public sealed class SyncFunctions(ICardStore store, IUserResolver users, RateLim
         {
             if (string.IsNullOrWhiteSpace(c.Id) || c.Id.Length > 100) return new BadRequestObjectResult(new { error = "Every card needs an id of at most 100 characters." });
             if (!Kinds.Contains(c.Kind) || !Statuses.Contains(c.Status)) return new BadRequestObjectResult(new { error = $"Card {c.Id} has an invalid kind or status." });
+            if (c.TranslationStatus is not null && !TranslationStatuses.Contains(c.TranslationStatus)) return new BadRequestObjectResult(new { error = $"Card {c.Id} has an invalid translation status." });
             if (c.SourceText.Length > 6000 || c.TranslatedText.Length > 12000) return new BadRequestObjectResult(new { error = $"Card {c.Id} is too long." });
             if (string.IsNullOrWhiteSpace(c.UpdatedAt)) return new BadRequestObjectResult(new { error = $"Card {c.Id} needs updatedAt." });
+            c.TranslationStatus ??= string.IsNullOrWhiteSpace(c.TranslatedText) ? "pending" : "translated";
         }
 
         var accepted = await store.UpsertAsync(user, cards, ct);

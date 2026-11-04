@@ -13,6 +13,7 @@ public sealed class CardDto
     public string SourceText { get; set; } = "";
     public string SourceLang { get; set; } = "auto";
     public string TranslatedText { get; set; } = "";
+    public string? TranslationStatus { get; set; }
     public string TargetLang { get; set; } = "";
     public string? ContextSentence { get; set; }
     public string? SourceUrl { get; set; }

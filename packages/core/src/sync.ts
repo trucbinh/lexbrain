@@ -42,6 +42,8 @@ export async function syncNow(getHeaders: () => Promise<Record<string, string>> 
       if (!local || remote.updatedAt > local.updatedAt) {
         const indexedRemote: CardRow = {
           ...remote,
+          translationStatus:
+            remote.translationStatus ?? (remote.translatedText.trim() ? 'translated' : 'pending'),
           sourceKey: normalizeSelection(remote.sourceText).toLowerCase(),
           isActive: remote.deletedAt ? 0 : 1,
         };

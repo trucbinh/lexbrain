@@ -15,7 +15,8 @@ afterEach(() => vi.unstubAllGlobals());
 
 const remoteCard = (over: Partial<Card>): Card => ({
   id: 'r1', userId: 'u', kind: 'word', sourceText: 'remote', sourceLang: 'en', translatedText: 'distant',
-  targetLang: 'es', status: 'learning', createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-02T00:00:00.000Z', ...over,
+  translationStatus: 'translated', targetLang: 'es', status: 'learning', createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-02T00:00:00.000Z', ...over,
 });
 
 function stubServer(remote: Card[]) {
@@ -59,6 +60,14 @@ describe('syncNow', () => {
     stubServer([remoteCard({ updatedAt: '2026-04-01T00:00:00.000Z', deletedAt: '2026-04-01T00:00:00.000Z' })]);
     await syncNow();
     expect((await getDb().cards.get('r1'))?.deletedAt).toBeTruthy();
+  });
+
+  it('syncs pending translations and infers status for older server cards', async () => {
+    const pending = await addCard({ sourceText: 'local pending', translatedText: '', targetLang: 'es' });
+    const pushed = stubServer([remoteCard({ translatedText: '', translationStatus: undefined })]);
+    await syncNow();
+    expect(pushed.find((card) => card.id === pending.id)?.translationStatus).toBe('pending');
+    expect((await getDb().cards.get('r1'))?.translationStatus).toBe('pending');
   });
 
   it('does not re-push unchanged cards on the second sync', async () => {

@@ -33,9 +33,13 @@ async function saveCard(input: NewCardInput, userId: string): Promise<Card> {
 
     const stamp = now();
     if (existing) {
+      const translatedText = input.translatedText.trim() || existing.translatedText;
       const updated: CardRow = {
         ...existing,
-        translatedText: input.translatedText.trim() || existing.translatedText,
+        translatedText,
+        translationStatus: translatedText
+          ? 'translated'
+          : input.translationStatus ?? existing.translationStatus ?? 'pending',
         contextSentence: input.contextSentence ?? existing.contextSentence,
         sourceUrl: input.sourceUrl ?? existing.sourceUrl,
         sourceTitle: input.sourceTitle ?? existing.sourceTitle,
@@ -54,6 +58,7 @@ async function saveCard(input: NewCardInput, userId: string): Promise<Card> {
       sourceText,
       sourceLang: input.sourceLang ?? 'auto',
       translatedText: input.translatedText.trim(),
+      translationStatus: input.translatedText.trim() ? 'translated' : input.translationStatus ?? 'pending',
       targetLang: input.targetLang,
       contextSentence: input.contextSentence,
       sourceUrl: input.sourceUrl,
@@ -115,7 +120,7 @@ export const markMastered = (id: string) => patch(id, { status: 'mastered' });
 export const restoreCard = (id: string) => patch(id, { status: 'learning', dueAt: undefined, reps: 0, interval: 0 });
 export const updateCard = (
   id: string,
-  changes: Partial<Pick<Card, 'translatedText' | 'note' | 'sourceText' | 'sourceLang'>>,
+  changes: Partial<Pick<Card, 'translatedText' | 'translationStatus' | 'note' | 'sourceText' | 'sourceLang'>>,
 ) =>
   patch(id, changes);
 

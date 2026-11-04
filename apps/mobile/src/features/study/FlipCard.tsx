@@ -41,7 +41,9 @@ function Face({
       </div>
       <div className="face-body">
         <p className="face-text">
-          {isSource && card.kind === 'word' ? <mark className="marker">{text}</mark> : text || 'Translation pending'}
+          {isSource && card.kind === 'word' ? (
+            <mark className="marker">{text}</mark>
+          ) : text || (card.translationStatus === 'failed' ? 'Translation unavailable' : 'Translation pending')}
         </p>
         {card.contextSentence && (
           <p className="face-context">

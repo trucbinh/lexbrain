@@ -29,7 +29,9 @@ function Row({ card }: { card: Card }) {
     <li className={`row ${card.status === 'mastered' ? 'row-mastered' : ''}`}>
       <div className="row-text">
         <p className="row-source">{card.sourceText}</p>
-        <p className="row-target">{card.translatedText || 'Translation pending'}</p>
+        <p className="row-target">
+          {card.translatedText || (card.translationStatus === 'failed' ? 'Translation unavailable' : 'Translation pending')}
+        </p>
         <p className="row-meta">
           <span>
             {languageName(card.sourceLang)} to {languageName(card.targetLang)}

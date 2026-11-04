@@ -86,6 +86,7 @@ export function CaptureSheet({ text, contextSentence: initialContextSentence, so
       const card = {
         sourceText: original,
         translatedText: translated,
+        translationStatus: translated.trim() ? ('translated' as const) : ('pending' as const),
         sourceLang: detected ?? 'auto',
         targetLang: target,
         contextSentence: contextSentence.trim() || undefined,

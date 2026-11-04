@@ -106,6 +106,7 @@ describe('repository', () => {
     const updated = await addCard({ ...base, sourceText: 'hello' });
 
     expect(updated.id).toBe('legacy-card');
+    expect(updated.translationStatus).toBe('translated');
     expect(await listCards()).toHaveLength(1);
   });
 
@@ -116,6 +117,7 @@ describe('repository', () => {
   it('stores a card with an empty translation for deferred translation', async () => {
     const card = await addCard({ sourceText: 'hello', translatedText: '', targetLang: 'fr' });
     expect(card.translatedText).toBe('');
+    expect(card.translationStatus).toBe('pending');
     expect(await listCards()).toContainEqual(expect.objectContaining({ id: card.id, sourceText: 'hello' }));
   });
 
@@ -124,6 +126,19 @@ describe('repository', () => {
     const duplicate = await addCard({ sourceText: 'hello', translatedText: '', targetLang: 'fr' });
     expect(duplicate.id).toBe(saved.id);
     expect(duplicate.translatedText).toBe(saved.translatedText);
+    expect(duplicate.translationStatus).toBe('translated');
+  });
+
+  it('keeps pending translation status after reopening the local database', async () => {
+    const name = `pending-reopen-${n++}`;
+    const original = new LexBrainDB(name);
+    setDb(original);
+    const saved = await addCard({ sourceText: 'hello', translatedText: '', targetLang: 'fr' });
+    original.close();
+
+    setDb(new LexBrainDB(name));
+    const reopened = await getStudyQueue();
+    expect(reopened).toContainEqual(expect.objectContaining({ id: saved.id, translationStatus: 'pending' }));
   });
 
   it('archives instead of deleting, and can restore', async () => {
