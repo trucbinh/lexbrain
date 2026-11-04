@@ -1,405 +1,330 @@
 # LexBrain Agent Instructions
 
-## Project workflow
+## Purpose
 
 This repository uses OpenSpec and spec-first together for specification-driven development.
 
-For non-trivial features, behavior changes, architectural changes, refactoring, and bug fixes with product impact, use the workflow defined below.
+Use this workflow for non-trivial features, product-impacting bug fixes, behavior changes, architectural changes, migrations, and significant refactoring. Small documentation edits, typo fixes, and other low-risk changes may use a shorter workflow, but must still follow repository conventions and applicable validation.
 
-OpenSpec and spec-first have separate responsibilities.
+## Responsibility model
 
-### OpenSpec owns
+### OpenSpec
 
-OpenSpec is the source of truth for:
+OpenSpec is authoritative for approved desired behavior, including:
 
 - product requirements
 - expected behavior
 - acceptance criteria
 - change proposals
 - specification deltas
-- technical design when required
+- technical design when needed
 - implementation tasks
 - verification against requirements
-- living/current specifications
+- current and living specifications
 
-Do not duplicate OpenSpec requirements into spec-first artifacts.
+OpenSpec requirements are the source of truth for what the product should do.
 
-### spec-first owns
+### Repository evidence
 
-spec-first is the execution-control layer for:
+The repository is authoritative for claims about the current implementation.
 
-- grounding implementation assumptions against the repository
-- repository evidence
+Use current source code, tests, configuration, and documentation to establish what exists today. A file path or line citation alone does not prove a claim; explain what the cited code establishes.
+
+If an OpenSpec artifact makes a factual claim about the current implementation that conflicts with repository evidence, correct the OpenSpec artifact and repeat the required review. Do not silently implement a false premise.
+
+### spec-first
+
+spec-first controls whether the proposed transition from the current state to the approved desired state is safe to execute. It owns:
+
+- repository grounding and evidence
 - independent specification review
 - scope control
 - isolated implementation
 - implementation decision records
 - validation gates
+- implementation-to-requirement verification
 - delivery readiness
 
-spec-first artifacts should reference the relevant OpenSpec change.
+spec-first artifacts must reference the relevant OpenSpec change. Do not copy full OpenSpec requirements into `.spec-first/`.
 
----
+## Instruction precedence
 
-# Required development lifecycle
+Apply guidance in this order:
 
-For a new feature or significant change, follow:
+1. LexBrain privacy, security, and architectural constraints evidenced by the repository
+2. Explicit user-approved requirements
+3. Approved OpenSpec specifications
+4. Approved OpenSpec design and tasks
+5. Current repository evidence for facts about the existing implementation
+6. spec-first review and execution records
+7. General coding-agent assumptions
 
-OpenSpec Explore
-→ OpenSpec Propose
-→ Requirements
-→ Design when needed
-→ Tasks
-→ spec-first Ground
-→ spec-first Review
-→ USER APPROVAL
-→ Isolated Implementation
-→ Tests / Lint / Type Check / Build
-→ OpenSpec Verify
-→ spec-first Delivery
-→ OpenSpec Archive
+If authoritative sources materially disagree, stop and report the exact conflict. Do not choose silently.
+
+## Mandatory lifecycle
+
+For a non-trivial change, follow this lifecycle:
+
+1. Explore the request and current implementation
+2. Run `/opsx-propose` to create or update the OpenSpec change
+3. Complete its proposal, requirement deltas, design when needed, and tasks
+4. Ground the proposed work in repository evidence
+5. Obtain an independent spec-first review in a fresh chat
+6. Resolve `BUILD WITH CUTS` or `REFUSE` outcomes
+7. Stop for explicit user approval
+8. Record approval under `.spec-first/runs/`
+9. Run `/spec-first-implement` in an isolated Git worktree
+10. Implement only the approved scope and record non-obvious decisions
+11. Run applicable LexBrain validation gates
+12. Run `/spec-first-verify`
+13. Verify the implementation against OpenSpec requirements
+14. Report delivery readiness
+15. Commit, push, open a pull request, or archive only when the user separately requests that action
 
 Do not skip required stages.
 
----
+## 1. Explore
 
-# Phase 1: Explore
+Before changing application code:
 
-Before creating or modifying application code:
-
-1. Understand the user's request.
-2. Inspect relevant existing OpenSpec specifications.
-3. Inspect the relevant LexBrain implementation.
-4. Inspect relevant tests.
-5. Identify affected components.
-6. Identify constraints and dependencies.
-7. Identify unknown requirements.
-
-For LexBrain, determine whether the change affects any of:
-
-- web application
-- Android application
-- Chrome extension
-- Edge extension
-- shared application code
-- storage/database
-- translation functionality
-- vocabulary functionality
-- flashcards
-- learning/review functionality
-- synchronization
-- backend/API
-
-Only investigate areas relevant to the requested change.
+- understand the user's request
+- inspect relevant current OpenSpec specifications
+- inspect the relevant LexBrain source code and nearby tests
+- identify affected components, dependencies, constraints, and unknowns
+- determine whether the change affects the web app, Android app, Chrome extension, Edge extension, shared code, storage, backend/API, translation, vocabulary, flashcards, learning/review, or synchronization
+- limit investigation to areas relevant to the request
 
 Do not modify product code during exploration.
 
----
+If an important product decision cannot be determined from the request, approved specifications, or repository, ask the user. Do not invent missing requirements.
 
-# Phase 2: OpenSpec change
+## 2. Create the OpenSpec change
 
-Create or update the appropriate OpenSpec change.
+Use `/opsx-propose` to create or update the appropriate OpenSpec change.
 
-The OpenSpec change should contain the appropriate:
+The change should include, as applicable:
 
 - proposal
-- requirement/specification deltas
+- requirement or specification deltas
 - design
 - tasks
 
-Requirements must be:
+Requirements must be clear, observable, testable, and unambiguous. For changed behavior, identify relevant `ADDED`, `MODIFIED`, and `REMOVED` behavior.
 
-- clear
-- observable
-- testable
-- unambiguous
+OpenSpec must describe what the system should do. Avoid unnecessary implementation detail unless it is a genuine constraint or approved design decision.
 
-For changed behavior, explicitly identify relevant:
+## 3. Design
 
-- ADDED behavior
-- MODIFIED behavior
-- REMOVED behavior
-
-Do not invent missing product requirements.
-
-If an important product decision cannot be determined from the request, existing specifications, or codebase, ask the user.
-
----
-
-# Phase 3: Design
-
-Create or update the OpenSpec design when implementation requires meaningful technical decisions.
+Create or update the OpenSpec design when the change requires meaningful technical decisions.
 
 Consider:
 
-- affected components
-- architecture
-- interfaces
-- data flow
-- data model
-- storage
-- migration
-- backwards compatibility
-- browser extension compatibility
-- Android compatibility
-- security
+- affected components and architecture
+- interfaces and data flow
+- data model, storage, and migration
+- backward compatibility
+- Android and browser-extension compatibility
+- security and privacy
 - performance
-- testing
+- testing approach
 
-Prefer the smallest implementation consistent with LexBrain's existing architecture.
+Prefer the smallest design consistent with LexBrain's current architecture. Do not include unrelated refactoring, speculative features, or unnecessary dependency upgrades.
 
-Do not include unrelated refactoring.
+## 4. Tasks
 
----
+Break the approved change into implementation tasks. Each task should:
 
-# Phase 4: Tasks
-
-Break the approved change into implementation tasks.
-
-Each task should:
-
-- correspond to an OpenSpec requirement when applicable
+- map to an OpenSpec requirement when applicable
 - have clear completion criteria
 - be independently understandable
 - be small enough to verify
 - avoid unrelated scope
 
----
+## 5. Repository grounding
 
-# Phase 5: spec-first grounding
+Before implementation, ground important assumptions in the current repository.
 
-Before implementation, use the installed spec-first workflow to ground the proposed change in the actual repository.
+For each material claim, record where practical:
 
-Validate important assumptions using repository evidence.
-
-Evidence should specify, where practical:
-
-- file
-- component/function/symbol
-- relevant location
+- file path
+- component, function, symbol, or configuration
+- relevant line or location
 - what the evidence establishes
 
-Never invent repository evidence.
+Never invent evidence. If the proposed scope, design, or assumptions conflict with current code, stop and report the conflict. Update OpenSpec when necessary, then repeat review.
 
-If repository evidence contradicts an OpenSpec assumption, stop and report the conflict.
+## 6. Independent review
 
-OpenSpec remains the requirements source of truth, but an incorrect requirement or assumption must not be silently implemented.
+Obtain a verdict from the Spec First Reviewer custom agent in a fresh chat with no planning or implementation conversation history.
 
----
+The reviewer must assess:
 
-# Phase 6: Independent review
+- whether important claims are supported by repository evidence
+- whether the plan satisfies the OpenSpec requirements
+- whether requested behavior is missing
+- whether unrequested behavior is included
+- whether important edge cases are missing
+- whether acceptance criteria are verifiable
+- whether the test plan is sufficient
+- whether existing behavior could regress
+- whether all affected platforms are accounted for
+- whether the plan contains unnecessary refactoring
 
-Use the spec-first review workflow before implementation.
+Save the review under `.spec-first/reviews/`.
 
-Review:
+Allowed verdicts:
 
-1. Are important claims supported by repository evidence?
-2. Does the plan satisfy the OpenSpec requirements?
-3. Is any requested behavior missing?
-4. Is any unrequested behavior included?
-5. Are important edge cases missing?
-6. Are acceptance criteria verifiable?
-7. Is the testing plan sufficient?
-8. Could existing functionality regress?
-9. Are affected platforms accounted for?
-10. Does the plan contain unnecessary refactoring?
+- `BUILD`
+- `BUILD WITH CUTS`
+- `REFUSE`
 
-Use the spec-first review outcome:
+A `BUILD WITH CUTS` verdict requires the specified OpenSpec updates and a new independent review. A `REFUSE` verdict stops the change.
 
-- BUILD
-- BUILD WITH CUTS
-- REFUSE
+Any material edit to approved requirements or design invalidates the previous review and approval. Repeat review and obtain approval again.
 
-For BUILD WITH CUTS, remove or correct the rejected scope before continuing.
+## 7. Mandatory user approval
 
-For REFUSE, do not implement.
+No implementation begins until:
 
----
+- the verdict is `BUILD`
+- the review record exists under `.spec-first/reviews/`
+- the user explicitly approves the named OpenSpec change
+- approval is recorded under `.spec-first/runs/`
 
-# Mandatory approval checkpoint
+An agent cannot approve on the user's behalf.
 
-For non-trivial changes, STOP before implementation.
-
-Present:
+Before asking for approval, present:
 
 - OpenSpec change name
 - goal
 - requirements
 - affected components
-- implementation plan
-- repository evidence
+- implementation tasks
+- repository evidence summary
 - risks
 - validation plan
-- spec-first review result
+- review verdict
 
-Wait for explicit user approval.
+Stop and wait for explicit approval.
 
-Do not begin implementation simply because the specification exists.
+## 8. Isolated implementation
 
----
+After approval, use `/spec-first-implement`.
 
-# Phase 7: Implementation
-
-After approval, use spec-first's isolation workflow when available.
-
-Prefer implementation on:
-
-- a dedicated Git branch
-- an isolated Git worktree
-
-Do not implement directly on the main branch unless explicitly requested.
+Use a dedicated Git branch and an isolated Git worktree on Windows. Do not install or enable a Git hook. Do not implement directly on the main branch unless the user explicitly requests it.
 
 For every task:
 
-1. Read the corresponding requirement.
-2. Inspect the relevant existing code.
-3. Implement the smallest correct change.
-4. Add or update tests.
+1. Read the corresponding OpenSpec requirement.
+2. Inspect the relevant existing implementation.
+3. Make the smallest correct change.
+4. Add or update appropriate tests.
 5. Run focused validation.
 6. Update task status.
 
 Do not silently expand scope.
 
----
+## 9. Decision records
 
-# Implementation decisions
+Record non-obvious implementation decisions with the spec-first decision mechanism.
 
-Record non-obvious technical decisions using the spec-first decision mechanism.
-
-Record:
+Each record should include:
 
 - context
 - decision
-- alternatives
+- alternatives considered
 - reasoning
 - consequences
 
-Implementation decisions may clarify HOW a requirement is implemented.
+Decision records may explain how an approved requirement is implemented. They must not silently change what the product should do. If observable behavior needs to change, update OpenSpec and repeat review and approval.
 
-They must not silently change WHAT the product should do.
+## 10. Validation gates
 
-If observable behavior needs to change, update and review OpenSpec first.
+Use the existing pnpm workspace and preserve its lockfile. Do not invent validation commands.
 
----
+The root validation commands are:
 
-# Validation gates
+```text
+pnpm test
+pnpm typecheck
+pnpm build:mobile
+pnpm build:ext
+```
 
-Before considering implementation complete, run the repository's applicable existing validation commands.
+There is no root lint script.
 
-Use actual commands defined by LexBrain.
-
-When available and applicable, validate:
-
-- unit tests
-- integration tests
-- type checking
-- lint
-- build
-- Android build/tests
-- Chrome extension build/tests
-- Edge extension build/tests
-
-Do not invent replacement tooling.
+Run only the commands applicable to the affected components, but run all applicable gates before declaring readiness. Use focused tests during implementation and the required broader gates before verification.
 
 Do not:
 
 - skip failing tests
 - disable failing tests
-- weaken assertions only to obtain a passing build
+- weaken assertions merely to obtain a passing result
 - bypass validation gates
+- replace existing tooling without an approved requirement
 
-When validation fails, determine whether the problem is:
+When validation fails, determine whether the cause is implementation, test, requirement, design, or environment. Correct the appropriate source and rerun the relevant checks.
 
-- implementation
-- test
-- requirement
-- design
-- environment
+## 11. Verification
 
-Correct the appropriate source of the problem and rerun the relevant validation.
+After applicable validation gates pass, run `/spec-first-verify` and verify the implementation against OpenSpec.
 
----
+Classify each applicable requirement as:
 
-# Phase 8: OpenSpec verification
+- `PASS`
+- `PARTIAL`
+- `FAIL`
+- `NOT VERIFIED`
 
-After implementation passes project gates, verify the implementation against OpenSpec.
+Support `PASS` with implementation or test evidence. Also check for behavior outside the approved scope.
 
-For every applicable requirement classify it as:
+Do not mark the change ready for delivery while required items remain `PARTIAL`, `FAIL`, or `NOT VERIFIED`.
 
-- PASS
-- PARTIAL
-- FAIL
-- NOT VERIFIED
+## 12. Delivery boundary
 
-PASS should be supported by implementation or test evidence.
-
-Do not archive a change containing unresolved PARTIAL, FAIL, or required NOT VERIFIED requirements.
-
-Also check for implementation outside the approved scope.
-
----
-
-# Phase 9: Delivery
-
-Use the spec-first delivery workflow.
-
-Before delivery report:
+After successful verification, report that the change is ready for delivery. Include:
 
 - changed files
 - completed tasks
 - tests added or modified
 - validation results
-- recorded decisions
-- requirements satisfied
+- decision records
+- satisfied requirements
 - known limitations
+- branch and worktree state
 
-Do not automatically merge unless explicitly requested.
+Do not commit, push, open a pull request, merge, or otherwise publish the change unless the user separately requests that action after the required gates pass.
 
----
+## 13. OpenSpec archive
 
-# Phase 10: OpenSpec archive
+Do not archive automatically.
 
-Archive an OpenSpec change only when:
+Archive only when:
 
 - implementation is complete
-- required tests pass
-- required builds pass
-- validation gates pass
+- applicable tests and builds pass
+- `/spec-first-verify` passes
 - OpenSpec verification passes
-- delivery is complete
+- delivery is complete or the user explicitly directs archival
+- the user separately requests the archive action
 
-Ensure the archive updates the current/living specifications correctly.
+Ensure archival updates the current and living OpenSpec specifications correctly.
 
----
+## Conflict handling
 
-# Conflict handling
+Never silently resolve conflicts among user requirements, OpenSpec artifacts, repository evidence, spec-first records, tests, and implementation.
 
-Never silently resolve conflicts among:
-
-1. user requirements
-2. OpenSpec requirements
-3. current LexBrain behavior
-4. spec-first evidence
-5. implementation
-
-When significant conflicts occur:
-
-STOP
-
-Explain:
+When a material conflict occurs, stop and explain:
 
 - what conflicts
-- repository evidence
-- affected requirement
-- recommended resolution
+- the repository evidence
+- the affected requirement or design decision
+- the recommended resolution
+- which stages must be repeated
 
-Wait for user direction when the conflict changes product behavior.
+Wait for user direction when resolution changes product behavior.
 
----
-
-# Scope control
-
-Do not make unrelated changes.
+## Scope control
 
 Avoid:
 
@@ -408,66 +333,22 @@ Avoid:
 - unnecessary dependency upgrades
 - architecture rewrites
 - formatting unrelated files
-- modifying tests simply to make gates pass
+- changing tests merely to make gates pass
 
 Prefer the smallest change that completely satisfies the approved specification.
 
----
-
-# Source-of-truth hierarchy
-
-Use this hierarchy:
-
-1. Explicit user-approved requirements
-2. Approved OpenSpec specifications
-3. Approved OpenSpec design and tasks
-4. Current repository evidence
-5. spec-first review and execution artifacts
-6. General agent assumptions
-
-When two authoritative sources materially disagree, stop instead of choosing silently.
-
----
-
-# Completion criteria
+## Completion criteria
 
 A non-trivial change is complete only when:
 
 - OpenSpec requirements are satisfied
-- implementation matches approved scope
+- implementation matches the approved scope
 - appropriate tests exist
 - applicable validation gates pass
+- `/spec-first-verify` passes
 - OpenSpec verification passes
 - relevant decisions are recorded
-- delivery is ready or complete
-- OpenSpec is ready to archive or has been archived
+- delivery is complete or explicitly reported as ready
+- archival is complete when separately requested
 
 Never claim completion based only on code generation.
-
-## Instruction Precedence
-
-Apply guidance in this order:
-
-1. LexBrain architecture, privacy, and security constraints evidenced by the repository.
-2. Requirements in the approved OpenSpec change.
-3. The approved OpenSpec design and tasks.
-4. Repository evidence and findings recorded under `.spec-first/`.
-5. General coding-agent instructions.
-
-If source code, approved OpenSpec artifacts, and `.spec-first/` execution records disagree, stop and report the exact conflict. Do not silently choose a source.
-
-## Required Change Gate
-
-- Use `/opsx-propose` to create the OpenSpec proposal, requirement deltas, design, and tasks. OpenSpec is the sole source of requirements; `.spec-first/` records link to those artifacts and never copy their full content.
-- Before implementation, ground the proposed scope in current repository files and line-level evidence, then obtain a verdict from the `Spec First Reviewer` custom agent in a fresh chat with no planning or implementation conversation history.
-- No implementation begins until the review verdict is `BUILD`, the review record is saved under `.spec-first/reviews/`, and the user explicitly approves the named OpenSpec change. Record the approval in `.spec-first/runs/`; an agent cannot approve on the user's behalf.
-- A `BUILD WITH CUTS` requires the specified OpenSpec artifact changes and a new review. `REFUSE` stops the change. Any material edit to approved requirements or design invalidates the prior review and approval.
-- Use `/spec-first-implement` only after these gates pass. Use a Git worktree on Windows; do not install or enable a Git hook.
-- Use `/spec-first-verify` before delivery. Do not archive until OpenSpec validation, implementation-to-requirement verification, and the applicable LexBrain checks pass.
-
-## Repository Evidence And Validation
-
-- Inspect the current code, nearby tests, and docs; cite paths and line numbers for factual claims. A valid path citation alone does not prove a claim.
-- The root scripts are `pnpm test`, `pnpm typecheck`, `pnpm build:mobile`, and `pnpm build:ext`. There is no root lint script. Do not invent validation commands.
-- Preserve the pnpm workspace and lockfile. Do not change application code during workflow setup.
-- Do not commit, push, open a pull request, or archive unless the user separately asks for that action after the required gates.
