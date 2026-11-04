@@ -1,0 +1,61 @@
+schema: spec-driven
+githubCopilot:
+  cloudAgent: false
+
+# Project context (optional)
+# Add only constraints that should guide OpenSpec artifacts and workflows.
+# Include constraints an agent cannot infer by reading the code.
+# Keep general project documentation and discoverable codebase facts out.
+# Example:
+#   context: |
+#     Designs and tasks must cover Windows, macOS, and Linux
+#     Write all artifacts in Spanish
+context: |
+  An initial feature request or positive review is not user approval to
+  implement. Require explicit user approval for the named OpenSpec change.
+  Preserve LexBrain's documented local-first and privacy behavior unless an
+  approved OpenSpec change explicitly changes it. Verify the current code and
+  documentation before relying on or proposing a change to those behaviors.
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always state what is out of scope
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+rules:
+  proposal:
+    - Ground scope in repository evidence and state what is out of scope.
+    - Identify assumptions and externally visible or privacy-related impact.
+  specs:
+    - Express requirements as observable behavior with explicit scenarios.
+    - Keep the approved OpenSpec change as the authoritative requirements source.
+  design:
+    - Cite existing files and patterns; distinguish current behavior from proposed decisions.
+  tasks:
+    - Include tests and existing validation commands; do not guess commands.
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing
+operations:
+  apply:
+    guidance:
+      - Before implementation, require a BUILD verdict from an independent specification review recorded under .spec-first and explicit user approval for the named OpenSpec change.
+      - If repository evidence, approved requirements, or execution records conflict, stop and report the conflict.
+      - Run only the existing project validation commands recorded in repository instructions.
+  archive:
+    guidance:
+      - Do not archive until implementation verification and all applicable existing LexBrain validation commands pass.
+      - Preserve OpenSpec requirements as the source of truth; execution records should link to change artifacts instead of copying them.
