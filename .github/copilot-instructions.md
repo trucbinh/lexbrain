@@ -4,7 +4,70 @@
 
 This repository uses OpenSpec and spec-first together for specification-driven development.
 
-Use this workflow for non-trivial features, product-impacting bug fixes, behavior changes, architectural changes, migrations, and significant refactoring. Small documentation edits, typo fixes, and other low-risk changes may use a shorter workflow, but must still follow repository conventions and applicable validation.
+Use a risk-based workflow for development. Before starting, classify each change as DIRECT, LEAN, or FULL, explain the choice in one sentence, and use the lowest-cost workflow that safely handles it. Do not choose FULL simply because OpenSpec and spec-first are available. Workflows may escalate DIRECT → LEAN → FULL when concrete risk is discovered; do not automatically downgrade after implementation begins. Reuse investigation when escalating rather than restarting discovery.
+
+## Workflow selection
+
+### DIRECT
+
+Use DIRECT for low-risk, localized changes such as typos, documentation, simple styling, obvious localized bug fixes, small UI adjustments, mechanical refactoring, or changes whose correctness is easily verified from the diff and focused tests.
+
+Workflow: inspect relevant code → implement → focused validation.
+
+- Do not create an OpenSpec change or invoke spec-first.
+- Do not create evidence artifacts or run independent review.
+- Do not create decision records unless there is a genuinely important decision.
+- Read only files necessary for the change.
+- If product behavior requiring specification is discovered, escalate to LEAN.
+
+### LEAN
+
+LEAN is the default for normal LexBrain feature development. Use it for normal product features, localized behavior changes, UI features, straightforward API changes, changes confined to one application/component, and changes with clear requirements and limited architectural risk.
+
+Workflow: OpenSpec proposal/spec/tasks → Copilot implementation → applicable validation → one verification pass.
+
+- OpenSpec owns requirements and acceptance criteria.
+- Create `design.md` only when meaningful technical design is required.
+- Do not run the independent spec-first reviewer by default.
+- Do not generate a separate repository evidence document by default.
+- Do not use a worktree by default.
+- Do not duplicate OpenSpec requirements into other artifacts.
+- Do not run both spec-first verification and OpenSpec verification when one verification pass can establish the requirements.
+- Read only files relevant to the proposed change. Use focused tests during development and broader validation only when required before completion.
+- Escalate to FULL only when a risk condition is discovered. Before escalating, report the risk, why LEAN is insufficient, and which additional FULL stages are required. Do not repeat completed discovery.
+
+### FULL
+
+Use FULL only for material engineering risk, including architecture changes; security or privacy-sensitive changes; authentication; persistence/storage redesign; data migration; destructive operations; synchronization architecture; major shared-code changes; changes spanning multiple LexBrain platforms; large refactoring; major API contracts; significant requirements ambiguity; risk of data loss from implementation errors; or repository evidence contradicting the proposed specification.
+
+Workflow: OpenSpec explore/propose → requirements → design → tasks → repository grounding → independent spec-first review → user approval → isolated worktree → implementation → validation → verification → delivery readiness.
+
+- Use the existing spec-first review process and require `BUILD` before implementation.
+- `BUILD WITH CUTS` requires specification changes and re-review. `REFUSE` stops implementation.
+- Require explicit user approval and use the existing worktree isolation process.
+- Record important decisions, run applicable LexBrain validation gates, use spec-first verification where required, and verify OpenSpec requirements before delivery.
+
+Workflow examples:
+
+- DIRECT: fix flashcard button spacing; correct a README typo; fix an obvious null check.
+- LEAN: add a favorite button to saved vocabulary; add replay pronunciation; add a flashcard filter; add a user preference.
+- FULL: replace local storage; add synchronization between Android, web, and extensions; change the spaced repetition algorithm and migrate review data; add authentication; redesign saved-vocabulary persistence.
+
+When uncertain between adjacent levels, start with the lower level and escalate if concrete risk is discovered. Specification-driven development reduces the cost of mistakes; do not spend more reasoning and specification effort than the risk justifies.
+
+## Context and artifact efficiency
+
+- Never scan the entire repository unless the task genuinely requires it.
+- Search for relevant files and symbols before reading files; read only relevant portions of large files.
+- Reuse existing OpenSpec specifications and project documentation. Do not regenerate information that already exists or repeatedly explain unchanged architecture.
+- Do not copy OpenSpec requirements into spec-first artifacts. Reference existing artifacts instead of summarizing them repeatedly.
+- Repository evidence should reference code rather than reproduce code. Collect formal evidence only for claims that materially affect architecture, scope, compatibility, security/privacy, destructive behavior, or data integrity.
+- Use focused tests during implementation. Do not repeatedly run full-project validation while developing.
+- Use one verification pass for LEAN changes.
+- Do not use an independent second agent for DIRECT or normal LEAN changes.
+- Use existing project documentation before rediscovering architecture from code.
+- For LEAN, normally create only the OpenSpec proposal/specification and tasks. Create design documentation only for meaningful design decisions. Do not create artifacts merely because a template exists.
+- For FULL, create only artifacts required by the actual risk and installed OpenSpec/spec-first workflow.
 
 ## Responsibility model
 
@@ -61,9 +124,9 @@ Apply guidance in this order:
 
 If authoritative sources materially disagree, stop and report the exact conflict. Do not choose silently.
 
-## Mandatory lifecycle
+## FULL lifecycle
 
-For a non-trivial change, follow this lifecycle:
+For FULL changes, follow this lifecycle:
 
 1. Explore the request and current implementation
 2. Run `/opsx-propose` to create or update the OpenSpec change
@@ -81,11 +144,11 @@ For a non-trivial change, follow this lifecycle:
 14. Report delivery readiness
 15. Commit, push, open a pull request, or archive only when the user separately requests that action
 
-Do not skip required stages.
+Do not skip required FULL stages. DIRECT and LEAN follow their workflow requirements above; the detailed stages below apply when required by FULL or when explicitly invoked by the user.
 
 ## 1. Explore
 
-Before changing application code:
+Before changing application code, follow the exploration steps required by the selected workflow:
 
 - understand the user's request
 - inspect relevant current OpenSpec specifications
@@ -100,7 +163,7 @@ If an important product decision cannot be determined from the request, approved
 
 ## 2. Create the OpenSpec change
 
-Use `/opsx-propose` to create or update the appropriate OpenSpec change.
+For LEAN and FULL, use `/opsx-propose` to create or update the appropriate OpenSpec change.
 
 The change should include, as applicable:
 
@@ -155,7 +218,7 @@ Never invent evidence. If the proposed scope, design, or assumptions conflict wi
 
 ## 6. Independent review
 
-Obtain a verdict from the Spec First Reviewer custom agent in a fresh chat with no planning or implementation conversation history.
+For FULL, obtain a verdict from the Spec First Reviewer custom agent in a fresh chat with no planning or implementation conversation history.
 
 The reviewer must assess:
 
@@ -184,7 +247,7 @@ Any material edit to approved requirements or design invalidates the previous re
 
 ## 7. Mandatory user approval
 
-No implementation begins until:
+For FULL, no implementation begins until:
 
 - the verdict is `BUILD`
 - the review record exists under `.spec-first/reviews/`
@@ -209,7 +272,7 @@ Stop and wait for explicit approval.
 
 ## 8. Isolated implementation
 
-After approval, use `/spec-first-implement`.
+For FULL, after approval, use `/spec-first-implement`.
 
 Use a dedicated Git branch and an isolated Git worktree on Windows. Do not install or enable a Git hook. Do not implement directly on the main branch unless the user explicitly requests it.
 
@@ -226,7 +289,7 @@ Do not silently expand scope.
 
 ## 9. Decision records
 
-Record non-obvious implementation decisions with the spec-first decision mechanism.
+For FULL, record important non-obvious implementation decisions with the spec-first decision mechanism. For DIRECT and LEAN, decision records are unnecessary unless there is a genuinely important decision.
 
 Each record should include:
 
@@ -253,7 +316,7 @@ pnpm build:ext
 
 There is no root lint script.
 
-Run only the commands applicable to the affected components, but run all applicable gates before declaring readiness. Use focused tests during implementation and the required broader gates before verification.
+Run only the commands applicable to the affected components, and run applicable root gates before completion. Prefer focused validation during implementation; do not repeatedly run full-project validation. Broader gates are required before completion when applicable to the affected platforms. For example, do not run Android/mobile builds for a browser-extension-only change unless shared code makes mobile regression plausible.
 
 Do not:
 
@@ -267,7 +330,7 @@ When validation fails, determine whether the cause is implementation, test, requ
 
 ## 11. Verification
 
-After applicable validation gates pass, run `/spec-first-verify` and verify the implementation against OpenSpec.
+For FULL, after applicable validation gates pass, run `/spec-first-verify` where required and verify the implementation against OpenSpec. LEAN uses one verification pass sufficient to establish the requirements; do not duplicate spec-first and OpenSpec verification unnecessarily. DIRECT requires focused validation.
 
 Classify each applicable requirement as:
 
@@ -339,7 +402,7 @@ Prefer the smallest change that completely satisfies the approved specification.
 
 ## Completion criteria
 
-A non-trivial change is complete only when:
+A FULL change is complete only when:
 
 - OpenSpec requirements are satisfied
 - implementation matches the approved scope
@@ -351,4 +414,4 @@ A non-trivial change is complete only when:
 - delivery is complete or explicitly reported as ready
 - archival is complete when separately requested
 
-Never claim completion based only on code generation.
+For LEAN, confirm the OpenSpec requirements and applicable validation in one verification pass. For DIRECT, confirm the diff and focused validation. Never claim completion based only on code generation.
