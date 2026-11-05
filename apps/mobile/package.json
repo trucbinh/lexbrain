@@ -7,13 +7,14 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "build:ext": "vite build --base ./ --outDir ../extension/dist/app --emptyOutDir",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "cap:sync": "vite build && cap sync",
     "cap:android": "node ../../scripts/apply-android-native.mjs && cap open android"
   },
   "dependencies": {
-    "@capacitor/app": "^8.0.0",
     "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.0.0",
     "@capacitor/core": "^8.5.3",
     "@capacitor/ios": "^8.5.3",
     "@lexbrain/core": "workspace:*",
@@ -25,10 +26,13 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.3",
+    "@testing-library/react": "^16.3.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "jsdom": "^30.1.3",
     "typescript": "^5.9.0",
-    "vite": "^8.3.4"
+    "vite": "^8.3.4",
+    "vitest": "3.2.7"
   }
 }

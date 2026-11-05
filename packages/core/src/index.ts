@@ -7,4 +7,5 @@ export * from './backup';
 export * from './settings';
 export * from './repository';
 export * from './translation';
+export * from './examples';
 export * from './sync';
